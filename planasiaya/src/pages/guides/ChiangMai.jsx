@@ -63,7 +63,7 @@ export default function ChiangMai() {
         </ul>
       </section>
       <CityChat city="chiangmai" />
-      <CityMeetups city="Chiang Mai" />
+      <CityMeetups city="chiang mai" />
       {/* Botón flotante */}
       <BackButton />
     </div>

@@ -1,4 +1,3 @@
-// src/components/CityMeetups.jsx
 import { useEffect, useState } from "react";
 import { db } from "../firebaseConfig";
 import {
@@ -17,10 +16,8 @@ export default function CityMeetups({ city }) {
   const [meetups, setMeetups] = useState([]);
   const [newMeetup, setNewMeetup] = useState("");
 
-  // Escuchar quedadas de la ciudad en tiempo real
+  // 📌 Escuchar quedadas en tiempo real
   useEffect(() => {
-    if (!city) return;
-
     const q = query(
       collection(db, "cityMeetups"),
       where("city", "==", city),
@@ -28,78 +25,79 @@ export default function CityMeetups({ city }) {
     );
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      const docs = snapshot.docs.map((doc) => ({
+      const events = snapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
       }));
-      setMeetups(docs);
+      setMeetups(events);
     });
 
     return () => unsubscribe();
   }, [city]);
 
-  // Crear nueva quedada
-  const createMeetup = async (e) => {
-    e.preventDefault(); // 👈 muy importante
+  // 📌 Crear quedada
+  const createMeetup = async () => {
     if (!newMeetup.trim() || !user) return;
-
     await addDoc(collection(db, "cityMeetups"), {
       city,
-      title: newMeetup,
+      text: newMeetup,
       userId: user.uid,
-      userName: profile?.displayName || profile?.email || "Anónimo",
+      userName: profile?.displayName || "Anónimo",
       createdAt: serverTimestamp(),
     });
-
     setNewMeetup("");
   };
 
   return (
-    <div className="mt-6 p-4 bg-white dark:bg-gray-800 rounded-lg shadow">
-      <h2 className="text-xl font-bold mb-3 text-purple-600">
-        🎉 Quedadas en {city}
-      </h2>
+    <div className="card mt-6">
+      <h2 className="text-xl font-bold mb-3">📅 Quedadas en {city}</h2>
 
       {meetups.length > 0 ? (
-        <ul className="space-y-2 mb-4">
+        <ul className="space-y-3">
           {meetups.map((m) => (
             <li
               key={m.id}
-              className="p-3 border rounded bg-gray-50 dark:bg-gray-700"
+              className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg shadow flex flex-col"
             >
-              <span className="font-semibold">{m.userName}:</span>{" "}
-              {m.title}
+              <p className="font-semibold text-gray-800 dark:text-gray-100">
+                {m.text}
+              </p>
+              <span className="text-xs text-gray-500">
+                Creado por {m.userName}
+              </span>
+              <button className="bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200">
+                Unirme
+              </button>
             </li>
           ))}
         </ul>
       ) : (
-        <p className="text-sm text-gray-500 mb-4">
-          Todavía no hay quedadas en esta ciudad.
-        </p>
+        <p className="text-gray-500">Todavía no hay quedadas en esta ciudad.</p>
       )}
 
+      {/* Input */}
       {user ? (
-        <form onSubmit={createMeetup} className="flex gap-2">
+        <div className="flex gap-2 mt-4">
           <input
             type="text"
             value={newMeetup}
             onChange={(e) => setNewMeetup(e.target.value)}
             placeholder="Ej: Cena en Khao San Road"
-            className="flex-1 border rounded px-2 py-1"
+            className="input-field"
+            onKeyDown={(e) => e.key === "Enter" && createMeetup()}
           />
-          <button
-            type="submit"
-            className="bg-brand text-white px-4 py-1 rounded hover:bg-brand-dark"
-          >
+          <button onClick={createMeetup} className="bg-brand hover:bg-brand-dark text-white px-4 py-2 rounded-lg font-semibold shadow-md transition active:scale-95">
             Guardar
           </button>
-        </form>
+        </div>
       ) : (
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-gray-500 mt-3">
           Inicia sesión para crear quedadas.
         </p>
       )}
     </div>
   );
 }
+
+
 

@@ -62,7 +62,7 @@ export default function Bohol() {
       </section>
 
       <CityChat city="bohol" />
-      <CityMeetups city="Bohol" />
+      <CityMeetups city="bohol" />
       {/* Botón flotante */}
       <BackButton />
     </div>

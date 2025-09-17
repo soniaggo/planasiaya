@@ -1,4 +1,3 @@
-// src/components/CityChat.jsx
 import { useEffect, useState, useRef } from "react";
 import { db } from "../firebaseConfig";
 import {
@@ -32,7 +31,6 @@ export default function CityChat({ city }) {
         ...doc.data(),
       }));
       setMessages(msgs);
-      // 👇 auto-scroll abajo
       setTimeout(() => {
         chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
       }, 100);
@@ -55,31 +53,35 @@ export default function CityChat({ city }) {
   };
 
   return (
-    <div className="mt-6 p-4 bg-white dark:bg-gray-800 rounded-lg shadow">
+    <div className="card mt-6">
       <h2 className="text-xl font-bold mb-3">💬 Chat en {city}</h2>
 
       {/* Área de mensajes */}
-      <div className="h-64 overflow-y-auto border rounded p-2 mb-2 bg-gray-50 dark:bg-gray-700 flex flex-col">
+      <div className="h-64 overflow-y-auto border rounded-lg p-2 mb-3 bg-gray-50 dark:bg-gray-700">
         {messages.map((msg) => {
-          const isOwn = msg.userId === user?.uid;
+          const isMine = msg.userId === user?.uid;
           return (
             <div
               key={msg.id}
-              className={`flex mb-2 ${
-                isOwn ? "justify-end" : "justify-start"
-              }`}
+              className={`flex mb-2 ${isMine ? "justify-end" : "justify-start"}`}
             >
               <div
-                className={`px-3 py-2 rounded-lg max-w-[75%] text-sm shadow ${
-                  isOwn
+                className={`max-w-[70%] px-3 py-2 rounded-lg shadow text-sm ${
+                  isMine
                     ? "bg-brand text-white rounded-br-none"
                     : "bg-gray-200 dark:bg-gray-600 text-gray-900 dark:text-gray-100 rounded-bl-none"
                 }`}
               >
-                {!isOwn && (
-                  <p className="font-semibold text-xs mb-0.5">{msg.userName}</p>
-                )}
+                <p className="font-semibold">{isMine ? "Tú" : msg.userName}</p>
                 <p>{msg.text}</p>
+                <p className="text-xs opacity-70 mt-1">
+                  {msg.createdAt?.toDate
+                    ? msg.createdAt.toDate().toLocaleTimeString([], {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })
+                    : ""}
+                </p>
               </div>
             </div>
           );
@@ -95,13 +97,10 @@ export default function CityChat({ city }) {
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
             placeholder="Escribe un mensaje..."
-            className="flex-1 border rounded px-2 py-1"
+            className="input-field"
             onKeyDown={(e) => e.key === "Enter" && sendMessage()}
           />
-          <button
-            onClick={sendMessage}
-            className="bg-brand text-white px-4 py-1 rounded hover:bg-brand-dark"
-          >
+          <button onClick={sendMessage} className="bg-brand hover:bg-brand-dark text-white px-4 py-2 rounded-lg font-semibold shadow-md transition active:scale-95">
             Enviar
           </button>
         </div>
@@ -113,6 +112,9 @@ export default function CityChat({ city }) {
     </div>
   );
 }
+
+
+
 
 
 

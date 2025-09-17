@@ -62,7 +62,7 @@ export default function Camiguin() {
         </ul>
       </section>
       <CityChat city="camiguin" />
-      <CityMeetups city="Camiguin" />
+      <CityMeetups city="camiguin" />
 
       {/* Botón flotante */}
       <BackButton />

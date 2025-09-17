@@ -60,7 +60,7 @@ export default function KohPhangan() {
         </ul>
       </section>
       <CityChat city="kohphangan" />
-      <CityMeetups city="Koh Phangan" />
+      <CityMeetups city="kohphangan" />
       {/* Botón flotante */}
       <BackButton />
     </div>

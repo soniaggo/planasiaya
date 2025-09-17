@@ -63,7 +63,7 @@ export default function Gili() {
         </ul>
       </section>
       <CityChat city="gili" /> 
-      <CityMeetups city="Gili Islands" /> 
+      <CityMeetups city="gili" /> 
       {/* Botón flotante */}
       <BackButton />
     </div>

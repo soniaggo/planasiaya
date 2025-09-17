@@ -60,7 +60,7 @@ export default function KohSamui() {
         </ul>
       </section>
       <CityChat city="kohsamui" />
-      <CityMeetups city="Koh Samui" />
+      <CityMeetups city="kohsamui" />
       {/* Botón flotante */}
       <BackButton />
     </div>

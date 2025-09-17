@@ -1,3 +1,5 @@
+
+
 import { Link } from "react-router-dom";
 import SEO from "../components/SEO";
 import logo from "../assets/logo.png";
@@ -9,7 +11,6 @@ const images = [
 ];
 
 export default function Home() {
-  // Imagen aleatoria en cada carga
   const randomImage = images[Math.floor(Math.random() * images.length)];
 
   return (
@@ -46,11 +47,17 @@ export default function Home() {
         </p>
 
         {/* Botones principales */}
-        <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Link to="/guides" className="bg-brand hover:bg-brand-dark text-white px-4 py-2 rounded-lg font-semibold shadow-md transition active:scale-95">
+        <div className="flex flex-col sm:flex-row gap-4 justify-center px-4">
+          <Link
+            to="/guides"
+            className="w-full sm:w-auto bg-brand text-white px-6 py-3 rounded-xl font-semibold shadow hover:bg-brand-dark transition active:scale-95 text-center"
+          >
             Explora guías
           </Link>
-          <Link to="/register" className="bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200">
+          <Link
+            to="/register"
+            className="w-full sm:w-auto bg-purple-600 text-white px-6 py-3 rounded-xl font-semibold shadow hover:bg-purple-700 transition active:scale-95 text-center"
+          >
             Únete ahora
           </Link>
         </div>
@@ -58,8 +65,6 @@ export default function Home() {
     </div>
   );
 }
-
-
 
 
 

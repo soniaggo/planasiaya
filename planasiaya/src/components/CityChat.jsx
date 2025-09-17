@@ -1,3 +1,5 @@
+
+
 import { useEffect, useState, useRef } from "react";
 import { db } from "../firebaseConfig";
 import {
@@ -17,7 +19,6 @@ export default function CityChat({ city }) {
   const [newMessage, setNewMessage] = useState("");
   const chatEndRef = useRef(null);
 
-  // 📌 Escuchar mensajes en tiempo real
   useEffect(() => {
     const q = query(
       collection(db, "cityChats"),
@@ -39,7 +40,6 @@ export default function CityChat({ city }) {
     return () => unsubscribe();
   }, [city]);
 
-  // 📌 Enviar mensaje
   const sendMessage = async () => {
     if (!newMessage.trim() || !user) return;
     await addDoc(collection(db, "cityChats"), {
@@ -53,11 +53,11 @@ export default function CityChat({ city }) {
   };
 
   return (
-    <div className="card mt-6">
+    <div className="mt-6 p-4 bg-white dark:bg-gray-800 rounded-lg shadow">
       <h2 className="text-xl font-bold mb-3">💬 Chat en {city}</h2>
 
-      {/* Área de mensajes */}
-      <div className="h-64 overflow-y-auto border rounded-lg p-2 mb-3 bg-gray-50 dark:bg-gray-700">
+      {/* Mensajes */}
+      <div className="max-h-[50vh] overflow-y-auto border rounded p-2 mb-2 bg-gray-50 dark:bg-gray-700">
         {messages.map((msg) => {
           const isMine = msg.userId === user?.uid;
           return (
@@ -74,14 +74,6 @@ export default function CityChat({ city }) {
               >
                 <p className="font-semibold">{isMine ? "Tú" : msg.userName}</p>
                 <p>{msg.text}</p>
-                <p className="text-xs opacity-70 mt-1">
-                  {msg.createdAt?.toDate
-                    ? msg.createdAt.toDate().toLocaleTimeString([], {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })
-                    : ""}
-                </p>
               </div>
             </div>
           );
@@ -91,16 +83,19 @@ export default function CityChat({ city }) {
 
       {/* Input */}
       {user ? (
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <input
             type="text"
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
             placeholder="Escribe un mensaje..."
-            className="input-field"
+            className="flex-1 border rounded px-2 py-2 min-w-[150px]"
             onKeyDown={(e) => e.key === "Enter" && sendMessage()}
           />
-          <button onClick={sendMessage} className="bg-brand hover:bg-brand-dark text-white px-4 py-2 rounded-lg font-semibold shadow-md transition active:scale-95">
+          <button
+            onClick={sendMessage}
+            className="bg-brand text-white px-4 py-2 rounded hover:bg-brand-dark"
+          >
             Enviar
           </button>
         </div>

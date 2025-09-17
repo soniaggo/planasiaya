@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { db } from "../firebaseConfig";
 import {
@@ -11,93 +12,105 @@ import {
 } from "firebase/firestore";
 import { useUser } from "../context/UserContext";
 
-export default function CityMeetups({ city }) {
+export default function CityMeetups({ city, country }) {
   const { user, profile } = useUser();
   const [meetups, setMeetups] = useState([]);
-  const [newMeetup, setNewMeetup] = useState("");
+  const [title, setTitle] = useState("");
 
-  // 📌 Escuchar quedadas en tiempo real
   useEffect(() => {
+    const now = new Date();
     const q = query(
       collection(db, "cityMeetups"),
       where("city", "==", city),
-      orderBy("createdAt", "desc")
+      where("expiresAt", ">", now),
+      orderBy("expiresAt", "asc")
     );
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      const events = snapshot.docs.map((doc) => ({
+      const data = snapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
       }));
-      setMeetups(events);
+      setMeetups(data);
     });
 
     return () => unsubscribe();
   }, [city]);
 
-  // 📌 Crear quedada
   const createMeetup = async () => {
-    if (!newMeetup.trim() || !user) return;
+    if (!title.trim() || !user) return;
+    const expiresAt = new Date(Date.now() + 2 * 60 * 60 * 1000); // 2h
     await addDoc(collection(db, "cityMeetups"), {
+      title,
       city,
-      text: newMeetup,
-      userId: user.uid,
-      userName: profile?.displayName || "Anónimo",
+      country,
+      authorId: user.uid,
+      authorName: profile?.displayName || "Anónimo",
       createdAt: serverTimestamp(),
+      expiresAt,
     });
-    setNewMeetup("");
+    setTitle("");
   };
 
   return (
-    <div className="card mt-6">
-      <h2 className="text-xl font-bold mb-3">📅 Quedadas en {city}</h2>
+    <div className="mt-6 p-4 bg-white dark:bg-gray-800 rounded-lg shadow">
+      <h2 className="text-xl font-bold mb-3">📍 Quedadas en {city}</h2>
 
-      {meetups.length > 0 ? (
-        <ul className="space-y-3">
-          {meetups.map((m) => (
-            <li
-              key={m.id}
-              className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg shadow flex flex-col"
-            >
-              <p className="font-semibold text-gray-800 dark:text-gray-100">
-                {m.text}
-              </p>
-              <span className="text-xs text-gray-500">
-                Creado por {m.userName}
-              </span>
-              <button className="bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200">
-                Unirme
-              </button>
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <p className="text-gray-500">Todavía no hay quedadas en esta ciudad.</p>
-      )}
-
-      {/* Input */}
       {user ? (
-        <div className="flex gap-2 mt-4">
+        <div className="flex flex-wrap gap-2 mb-4">
           <input
             type="text"
-            value={newMeetup}
-            onChange={(e) => setNewMeetup(e.target.value)}
-            placeholder="Ej: Cena en Khao San Road"
-            className="input-field"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="Ej: Tomar algo al atardecer"
+            className="flex-1 border rounded px-2 py-2 min-w-[150px]"
             onKeyDown={(e) => e.key === "Enter" && createMeetup()}
           />
-          <button onClick={createMeetup} className="bg-brand hover:bg-brand-dark text-white px-4 py-2 rounded-lg font-semibold shadow-md transition active:scale-95">
-            Guardar
+          <button
+            onClick={createMeetup}
+            className="bg-brand text-white px-4 py-2 rounded hover:bg-brand-dark"
+          >
+            Crear
           </button>
         </div>
       ) : (
-        <p className="text-sm text-gray-500 mt-3">
-          Inicia sesión para crear quedadas.
+        <p className="text-sm text-gray-500 mb-4">
+          Inicia sesión para crear una quedada.
         </p>
       )}
+
+      <div className="space-y-3">
+        {meetups.length > 0 ? (
+          meetups.map((m) => (
+            <div
+              key={m.id}
+              className="p-4 bg-white dark:bg-gray-800 rounded-lg shadow flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3"
+            >
+              <div>
+                <p className="font-bold">{m.title}</p>
+                <p className="text-sm text-gray-600 dark:text-gray-300">
+                  Autor: {m.authorName}
+                </p>
+                <p className="text-xs text-gray-500">
+                  Expira:{" "}
+                  {m.expiresAt?.toDate
+                    ? m.expiresAt.toDate().toLocaleTimeString([], {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })
+                    : "Sin fecha"}
+                </p>
+              </div>
+              <button className="bg-brand text-white px-3 py-1 rounded-lg shadow hover:bg-brand-dark text-sm font-semibold">
+                Unirme
+              </button>
+            </div>
+          ))
+        ) : (
+          <p className="text-gray-500">No hay quedadas activas ahora mismo.</p>
+        )}
+      </div>
     </div>
   );
 }
-
-
 

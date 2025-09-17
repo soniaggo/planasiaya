@@ -6,13 +6,14 @@ import { HelmetProvider } from "react-helmet-async";
 
 // Contexto de usuario
 import { UserProvider } from "./context/UserContext";
+import { ThemeProvider } from "./context/ThemeContext";
 
 // Páginas
 import App from "./App";
 import Home from "./pages/Home";
 import Guides from "./pages/Guides";
 import Community from "./pages/Community";
-import Chat from "./pages/Chat";
+import AllMeetups from "./pages/AllMeetups";
 import Profile from "./pages/Profile";
 import Register from "./pages/Register";
 import Login from "./pages/Login";
@@ -38,7 +39,7 @@ const router = createBrowserRouter([
       { path: "/", element: <Home /> },
       { path: "/guides", element: <Guides /> },
       { path: "/community", element: <Community /> },
-      { path: "/chat", element: <Chat /> },
+      { path: "/allmeetups", element: <AllMeetups /> },
       { path: "/profile", element: <Profile /> },
       { path: "/register", element: <Register /> },
       { path: "/login", element: <Login /> },
@@ -63,7 +64,9 @@ ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <HelmetProvider>
       <UserProvider>
+        <ThemeProvider> 
         <RouterProvider router={router} />
+        </ThemeProvider>
       </UserProvider>
     </HelmetProvider>
   </React.StrictMode>

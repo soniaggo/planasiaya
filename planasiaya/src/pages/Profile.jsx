@@ -1,7 +1,7 @@
 import { useUser } from "../context/UserContext";
 import { Link } from "react-router-dom";
 import guidesData from "../data/guidesData";
-import { Trash2 } from "lucide-react"; // 🗑️ Icono
+import { Trash2 } from "lucide-react";
 import PhotoUploader from "../components/PhotoUploader";
 import { collection, query, where, onSnapshot } from "firebase/firestore";
 import { useEffect, useState } from "react";
@@ -11,32 +11,6 @@ export default function Profile() {
   const { user, profile, removeFavorite } = useUser();
   const [photos, setPhotos] = useState([]);
 
-  // 🔹 Escuchar fotos del usuario en tiempo real
-  useEffect(() => {
-    if (!user) return; // ✅ El hook siempre se ejecuta, pero aquí salimos si no hay usuario
-    const q = query(collection(db, "photos"), where("userId", "==", user.uid));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const userPhotos = snapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
-      setPhotos(userPhotos);
-    });
-    return () => unsubscribe();
-  }, [user]);
-
-  // 🔎 Buscar los datos de los favoritos en guidesData
-  const favoriteDetails = profile?.favorites
-    ?.map((favName) => {
-      for (const country of guidesData) {
-        const match = country.destinations.find((d) => d.name === favName);
-        if (match) return match;
-      }
-      return null;
-    })
-    .filter(Boolean);
-
-  // 🔹 Si no hay usuario, devolvemos directamente la vista de login
   if (!user) {
     return (
       <div className="p-6 text-center">
@@ -51,6 +25,29 @@ export default function Profile() {
       </div>
     );
   }
+
+  const favoriteDetails = profile?.favorites
+    ?.map((favName) => {
+      for (const country of guidesData) {
+        const match = country.destinations.find((d) => d.name === favName);
+        if (match) return match;
+      }
+      return null;
+    })
+    .filter(Boolean);
+
+  useEffect(() => {
+    if (!user) return;
+    const q = query(collection(db, "photos"), where("userId", "==", user.uid));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const userPhotos = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      setPhotos(userPhotos);
+    });
+    return () => unsubscribe();
+  }, [user]);
 
   return (
     <div className="p-6">
@@ -76,7 +73,6 @@ export default function Profile() {
               key={i}
               className="group bg-white dark:bg-darkCard rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 relative"
             >
-              {/* Botón eliminar favorito con icono */}
               <button
                 onClick={() => removeFavorite(fav.name)}
                 className="absolute top-2 right-2 z-10 bg-red-600 p-2 rounded-full shadow hover:bg-red-700 transition"
@@ -85,7 +81,6 @@ export default function Profile() {
                 <Trash2 size={18} className="text-white" />
               </button>
 
-              {/* Imagen + link */}
               <Link to={fav.path}>
                 <div className="relative w-full h-40 md:h-48 overflow-hidden">
                   <img
@@ -96,8 +91,6 @@ export default function Profile() {
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
                 </div>
-
-                {/* Nombre */}
                 <div className="p-4">
                   <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 group-hover:text-brand transition-colors">
                     {fav.name}
@@ -116,10 +109,12 @@ export default function Profile() {
       {/* Subir foto */}
       <PhotoUploader />
 
-      {/* Galería personal */}
-      <h2 className="text-2xl font-bold mt-8 mb-4 text-secondary">📷 Mis fotos</h2>
+      {/* Galería */}
+      <h2 className="text-2xl font-bold mt-8 mb-4 text-secondary">
+        📷 Mis fotos
+      </h2>
       {photos.length > 0 ? (
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
           {photos.map((photo) => (
             <div key={photo.id} className="relative">
               <img
@@ -143,7 +138,6 @@ export default function Profile() {
     </div>
   );
 }
-
 
 
 

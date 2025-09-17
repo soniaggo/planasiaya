@@ -1,5 +1,7 @@
 // src/pages/guides/ChiangMai.jsx
 import BackButton from "../../components/BackButton";
+import CityChat from "../../components/CityChat";
+import CityMeetups from "../../components/CityMeetups";
 
 export default function ChiangMai() {
   return (
@@ -60,7 +62,8 @@ export default function ChiangMai() {
           <li>Elige solo santuarios de elefantes éticos que no permitan montar animales.</li>
         </ul>
       </section>
-
+      <CityChat city="chiangmai" />
+      <CityMeetups city="Chiang Mai" />
       {/* Botón flotante */}
       <BackButton />
     </div>

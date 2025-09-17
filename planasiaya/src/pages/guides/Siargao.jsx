@@ -1,5 +1,7 @@
 // src/pages/guides/Siargao.jsx
 import BackButton from "../../components/BackButton";
+import CityChat from "../../components/CityChat";
+import CityMeetups from "../../components/CityMeetups";
 
 export default function Siargao() {
   return (
@@ -57,7 +59,8 @@ export default function Siargao() {
           <li>Respeta el ambiente local, no dejes basura en las playas ni en las lagunas.</li>
         </ul>
       </section>
-
+      <CityChat city="siargao" />   
+      <CityMeetups city="Siargao" />
       {/* Botón flotante */}
       <BackButton />
     </div>

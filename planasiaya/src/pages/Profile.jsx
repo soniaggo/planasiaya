@@ -1,13 +1,42 @@
-
-// src/pages/Profile.jsx
 import { useUser } from "../context/UserContext";
 import { Link } from "react-router-dom";
 import guidesData from "../data/guidesData";
 import { Trash2 } from "lucide-react"; // 🗑️ Icono
+import PhotoUploader from "../components/PhotoUploader";
+import { collection, query, where, onSnapshot } from "firebase/firestore";
+import { useEffect, useState } from "react";
+import { db } from "../firebaseConfig";
 
 export default function Profile() {
   const { user, profile, removeFavorite } = useUser();
+  const [photos, setPhotos] = useState([]);
 
+  // 🔹 Escuchar fotos del usuario en tiempo real
+  useEffect(() => {
+    if (!user) return; // ✅ El hook siempre se ejecuta, pero aquí salimos si no hay usuario
+    const q = query(collection(db, "photos"), where("userId", "==", user.uid));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const userPhotos = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      setPhotos(userPhotos);
+    });
+    return () => unsubscribe();
+  }, [user]);
+
+  // 🔎 Buscar los datos de los favoritos en guidesData
+  const favoriteDetails = profile?.favorites
+    ?.map((favName) => {
+      for (const country of guidesData) {
+        const match = country.destinations.find((d) => d.name === favName);
+        if (match) return match;
+      }
+      return null;
+    })
+    .filter(Boolean);
+
+  // 🔹 Si no hay usuario, devolvemos directamente la vista de login
   if (!user) {
     return (
       <div className="p-6 text-center">
@@ -23,17 +52,6 @@ export default function Profile() {
     );
   }
 
-  // 🔎 Buscar los datos de los favoritos en guidesData
-  const favoriteDetails = profile?.favorites
-    ?.map((favName) => {
-      for (const country of guidesData) {
-        const match = country.destinations.find((d) => d.name === favName);
-        if (match) return match;
-      }
-      return null;
-    })
-    .filter(Boolean);
-
   return (
     <div className="p-6">
       {/* Datos del usuario */}
@@ -41,9 +59,15 @@ export default function Profile() {
       <p className="mb-2">
         <span className="font-semibold">Email:</span> {profile?.email}
       </p>
+      <p className="mb-6">
+        <span className="font-semibold">Usuario:</span>{" "}
+        {profile?.displayName || "Sin nombre"}
+      </p>
 
       {/* Favoritos */}
-      <h2 className="text-2xl font-bold mt-8 mb-4 text-secondary">❤️ Mis favoritos</h2>
+      <h2 className="text-2xl font-bold mt-8 mb-4 text-secondary">
+        ❤️ Mis favoritos
+      </h2>
 
       {favoriteDetails?.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
@@ -88,9 +112,38 @@ export default function Profile() {
           Todavía no has guardado destinos como favoritos.
         </p>
       )}
+
+      {/* Subir foto */}
+      <PhotoUploader />
+
+      {/* Galería personal */}
+      <h2 className="text-2xl font-bold mt-8 mb-4 text-secondary">📷 Mis fotos</h2>
+      {photos.length > 0 ? (
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+          {photos.map((photo) => (
+            <div key={photo.id} className="relative">
+              <img
+                src={photo.url}
+                alt="Foto subida"
+                className="w-full h-40 object-cover rounded-lg shadow"
+              />
+              <span className="absolute bottom-1 right-1 text-xs bg-black/50 text-white px-2 py-0.5 rounded">
+                {photo.visibility === "public"
+                  ? "🌍"
+                  : photo.visibility === "friends"
+                  ? "👥"
+                  : "🔒"}
+              </span>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <p className="text-gray-500">Todavía no has subido fotos.</p>
+      )}
     </div>
   );
 }
+
 
 
 

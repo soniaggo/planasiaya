@@ -1,4 +1,7 @@
 import BackButton from "../../components/BackButton";
+import CityChat from "../../components/CityChat";
+import CityMeetups from "../../components/CityMeetups";
+
 
 export default function Bangkok() {
   return (
@@ -56,6 +59,8 @@ export default function Bangkok() {
         </ul>
       </section>
 
+      <CityChat city="bangkok" />
+      <CityMeetups city="Bangkok" />
       {/* Botón flotante */}
       <BackButton />
     </div>

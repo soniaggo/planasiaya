@@ -1,5 +1,7 @@
 // src/pages/guides/KohTao.jsx
 import BackButton from "../../components/BackButton";
+import CityChat from "../../components/CityChat";
+import CityMeetups from "../../components/CityMeetups";
 
 export default function KohTao() {
   return (
@@ -58,7 +60,8 @@ export default function KohTao() {
           <li>Si buscas tranquilidad, alójate lejos de Sairee Beach.</li>
         </ul>
       </section>
-
+      <CityChat city="kohtao" />
+      <CityMeetups city="Koh Tao" />
       {/* Botón flotante */}
       <BackButton />
     </div>

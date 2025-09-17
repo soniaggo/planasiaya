@@ -1,5 +1,7 @@
 // src/pages/guides/Bali.jsx
 import BackButton from "../../components/BackButton";
+import CityChat from "../../components/CityChat"; 
+import CityMeetups from "../../components/CityMeetups";
 
 export default function Bali() {
   return (
@@ -59,6 +61,9 @@ export default function Bali() {
           <li>Evita beber agua del grifo, compra siempre embotellada.</li>
         </ul>
       </section>
+
+       <CityChat city="bali" /> 
+      <CityMeetups city="Bali" />
 
       {/* Botón flotante */}
       <BackButton />

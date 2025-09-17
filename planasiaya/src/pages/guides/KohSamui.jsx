@@ -1,5 +1,7 @@
 // src/pages/guides/KohSamui.jsx
 import BackButton from "../../components/BackButton";
+import CityChat from "../../components/CityChat";
+import CityMeetups from "../../components/CityMeetups";
 
 export default function KohSamui() {
   return (
@@ -57,7 +59,8 @@ export default function KohSamui() {
           <li>No te pierdas un masaje tailandés frente al mar.</li>
         </ul>
       </section>
-
+      <CityChat city="kohsamui" />
+      <CityMeetups city="Koh Samui" />
       {/* Botón flotante */}
       <BackButton />
     </div>

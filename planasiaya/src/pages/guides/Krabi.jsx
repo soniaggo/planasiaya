@@ -1,6 +1,7 @@
 // src/pages/guides/Krabi.jsx
 import BackButton from "../../components/BackButton";
-
+import CityChat from "../../components/CityChat";
+import CityMeetups from "../../components/CityMeetups";
 export default function Krabi() {
   return (
     <div className="p-4 space-y-6">
@@ -57,7 +58,8 @@ export default function Krabi() {
           <li>En temporada alta, reserva alojamiento con antelación.</li>
         </ul>
       </section>
-
+      <CityChat city="krabi" />
+      <CityMeetups city="Krabi" />
       {/* Botón flotante */}
       <BackButton />
     </div>

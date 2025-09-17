@@ -1,5 +1,7 @@
 // src/pages/guides/Camiguin.jsx
 import BackButton from "../../components/BackButton";
+import CityChat from "../../components/CityChat";
+import CityMeetups from "../../components/CityMeetups";
 
 export default function Camiguin() {
   return (
@@ -59,6 +61,8 @@ export default function Camiguin() {
           <li>Es una isla tranquila, ideal para descansar lejos de grandes masas turísticas.</li>
         </ul>
       </section>
+      <CityChat city="camiguin" />
+      <CityMeetups city="Camiguin" />
 
       {/* Botón flotante */}
       <BackButton />

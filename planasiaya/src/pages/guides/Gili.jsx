@@ -1,5 +1,7 @@
 // src/pages/guides/Gili.jsx
 import BackButton from "../../components/BackButton";
+import CityChat from "../../components/CityChat"; 
+import CityMeetups from "../../components/CityMeetups";
 
 export default function Gili() {
   return (
@@ -60,7 +62,8 @@ export default function Gili() {
           <li>Respeta el entorno marino: no toques los corales ni los animales.</li>
         </ul>
       </section>
-
+      <CityChat city="gili" /> 
+      <CityMeetups city="Gili Islands" /> 
       {/* Botón flotante */}
       <BackButton />
     </div>

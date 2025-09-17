@@ -1,5 +1,7 @@
 // src/pages/guides/KohPhangan.jsx
 import BackButton from "../../components/BackButton";
+import CityChat from "../../components/CityChat";
+import CityMeetups from "../../components/CityMeetups";
 
 export default function KohPhangan() {
   return (
@@ -57,7 +59,8 @@ export default function KohPhangan() {
           <li>No te pierdas los atardeceres en Haad Rin o Secret Beach.</li>
         </ul>
       </section>
-
+      <CityChat city="kohphangan" />
+      <CityMeetups city="Koh Phangan" />
       {/* Botón flotante */}
       <BackButton />
     </div>

@@ -1,75 +1,114 @@
+
+
 // src/components/PhotoUploader.jsx
 import { useState } from "react";
 import { storage, db } from "../firebaseConfig";
 import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
-import { collection, addDoc } from "firebase/firestore";
+import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { useUser } from "../context/UserContext";
+import Loader from "./Loader";
 
 export default function PhotoUploader() {
-  const { user } = useUser();
+  const { user, profile } = useUser();
   const [file, setFile] = useState(null);
+  const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [visibility, setVisibility] = useState("private"); // "private" | "friends" | "public"
   const [message, setMessage] = useState("");
 
-  const handleUpload = () => {
+  const handleUpload = async () => {
     if (!file || !user) {
-      setMessage("⚠️ Debes seleccionar una foto e iniciar sesión.");
+      setMessage("❌ Selecciona una foto primero.");
       return;
     }
 
-    const storageRef = ref(storage, `photos/${user.uid}/${file.name}`);
-    const uploadTask = uploadBytesResumable(storageRef, file);
+    setUploading(true);
+    setMessage("");
+
+    const fileRef = ref(storage, `photos/${user.uid}/${Date.now()}-${file.name}`);
+    const uploadTask = uploadBytesResumable(fileRef, file);
 
     uploadTask.on(
       "state_changed",
       (snapshot) => {
-        // Progreso en %
-        const prog = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-        setProgress(Math.round(prog));
+        const percent = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100);
+        setProgress(percent);
       },
       (error) => {
-        setMessage("❌ Error al subir la foto: " + error.message);
+        setMessage("❌ Error al subir: " + error.message);
+        setUploading(false);
       },
       async () => {
-        // Subida completa
         const url = await getDownloadURL(uploadTask.snapshot.ref);
+
+        // Guardar en Firestore
         await addDoc(collection(db, "photos"), {
-          url,
           userId: user.uid,
-          createdAt: new Date(),
-          visibility: "private", // default
+          userName: profile?.displayName || "Anónimo",
+          url,
+          visibility,
+          createdAt: serverTimestamp(),
         });
-        setMessage("✅ Foto subida con éxito!");
+
+        setMessage("✅ Foto subida correctamente.");
         setFile(null);
         setProgress(0);
+        setUploading(false);
       }
     );
   };
 
+  if (!user) {
+    return <p className="text-sm text-gray-500">Inicia sesión para subir fotos.</p>;
+  }
+
   return (
-    <div className="mt-8 p-4 border rounded-lg shadow bg-white dark:bg-gray-800">
-      <h3 className="text-lg font-bold mb-2">📤 Subir foto</h3>
+    <div className="mt-8 p-4 bg-white dark:bg-gray-800 rounded-lg shadow space-y-4">
+      <h2 className="text-xl font-bold text-secondary">📤 Subir foto</h2>
+
+      {/* Selector de archivo */}
       <input
         type="file"
         accept="image/*"
         onChange={(e) => setFile(e.target.files[0])}
-        className="mb-2"
+        className="w-full text-sm text-gray-700 dark:text-gray-200"
       />
-      {progress > 0 && (
-        <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
-          <div
-            className="bg-brand h-2 rounded-full"
-            style={{ width: `${progress}%` }}
-          ></div>
-        </div>
-      )}
+
+      {/* Select de visibilidad */}
+      <select
+        value={visibility}
+        onChange={(e) => setVisibility(e.target.value)}
+        className="w-full p-2 border rounded text-sm dark:bg-gray-700 dark:border-gray-600"
+      >
+        <option value="private">🔒 Solo yo</option>
+        <option value="friends">👥 Amigos</option>
+        <option value="public">🌍 Público</option>
+      </select>
+
+      {/* Botón subir */}
       <button
         onClick={handleUpload}
-        className="px-4 py-2 bg-brand text-white rounded hover:bg-brand-dark transition"
+        disabled={uploading}
+        className="w-full bg-brand hover:bg-brand-dark text-white px-4 py-2 rounded-lg font-semibold shadow transition active:scale-95 disabled:opacity-50"
       >
-        Subir
+        {uploading ? "Subiendo..." : "Subir foto"}
       </button>
-      {message && <p className="mt-2 text-sm">{message}</p>}
+
+      {/* Barra de progreso */}
+      {uploading && (
+        <div>
+          <Loader text={`Subiendo foto... ${progress}%`} />
+          <div className="w-full bg-gray-200 rounded h-2 mt-2 dark:bg-gray-700">
+            <div
+              className="bg-brand h-2 rounded"
+              style={{ width: `${progress}%` }}
+            ></div>
+          </div>
+        </div>
+      )}
+
+      {/* Mensaje final */}
+      {message && <p className="text-sm text-center">{message}</p>}
     </div>
   );
 }

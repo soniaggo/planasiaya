@@ -1,8 +1,10 @@
+// src/pages/Profile.jsx
 import { useUser } from "../context/UserContext";
 import { Link } from "react-router-dom";
 import guidesData from "../data/guidesData";
 import { Trash2 } from "lucide-react";
 import PhotoUploader from "../components/PhotoUploader";
+import Loader from "../components/Loader";
 import { collection, query, where, onSnapshot } from "firebase/firestore";
 import { useEffect, useState } from "react";
 import { db } from "../firebaseConfig";
@@ -10,7 +12,35 @@ import { db } from "../firebaseConfig";
 export default function Profile() {
   const { user, profile, removeFavorite } = useUser();
   const [photos, setPhotos] = useState([]);
+  const [loading, setLoading] = useState(true);
 
+  // 🔹 Escuchar fotos del usuario en tiempo real
+  useEffect(() => {
+    if (!user) return;
+    const q = query(collection(db, "photos"), where("userId", "==", user.uid));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const userPhotos = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      setPhotos(userPhotos);
+      setLoading(false);
+    });
+    return () => unsubscribe();
+  }, [user]);
+
+  // 🔎 Buscar los datos de los favoritos en guidesData
+  const favoriteDetails = profile?.favorites
+    ?.map((favName) => {
+      for (const country of guidesData) {
+        const match = country.destinations.find((d) => d.name === favName);
+        if (match) return match;
+      }
+      return null;
+    })
+    .filter(Boolean);
+
+  // 👤 Si no hay usuario logueado
   if (!user) {
     return (
       <div className="p-6 text-center">
@@ -26,29 +56,6 @@ export default function Profile() {
     );
   }
 
-  const favoriteDetails = profile?.favorites
-    ?.map((favName) => {
-      for (const country of guidesData) {
-        const match = country.destinations.find((d) => d.name === favName);
-        if (match) return match;
-      }
-      return null;
-    })
-    .filter(Boolean);
-
-  useEffect(() => {
-    if (!user) return;
-    const q = query(collection(db, "photos"), where("userId", "==", user.uid));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const userPhotos = snapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
-      setPhotos(userPhotos);
-    });
-    return () => unsubscribe();
-  }, [user]);
-
   return (
     <div className="p-6">
       {/* Datos del usuario */}
@@ -62,10 +69,7 @@ export default function Profile() {
       </p>
 
       {/* Favoritos */}
-      <h2 className="text-2xl font-bold mt-8 mb-4 text-secondary">
-        ❤️ Mis favoritos
-      </h2>
-
+      <h2 className="text-2xl font-bold mt-8 mb-4 text-secondary">❤️ Mis favoritos</h2>
       {favoriteDetails?.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
           {favoriteDetails.map((fav, i) => (
@@ -73,6 +77,7 @@ export default function Profile() {
               key={i}
               className="group bg-white dark:bg-darkCard rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 relative"
             >
+              {/* Botón eliminar favorito */}
               <button
                 onClick={() => removeFavorite(fav.name)}
                 className="absolute top-2 right-2 z-10 bg-red-600 p-2 rounded-full shadow hover:bg-red-700 transition"
@@ -81,6 +86,7 @@ export default function Profile() {
                 <Trash2 size={18} className="text-white" />
               </button>
 
+              {/* Imagen + link */}
               <Link to={fav.path}>
                 <div className="relative w-full h-40 md:h-48 overflow-hidden">
                   <img
@@ -109,14 +115,14 @@ export default function Profile() {
       {/* Subir foto */}
       <PhotoUploader />
 
-      {/* Galería */}
-      <h2 className="text-2xl font-bold mt-8 mb-4 text-secondary">
-        📷 Mis fotos
-      </h2>
-      {photos.length > 0 ? (
+      {/* Galería personal */}
+      <h2 className="text-2xl font-bold mt-8 mb-4 text-secondary">📷 Mis fotos</h2>
+      {loading ? (
+        <Loader text="Cargando tus fotos..." />
+      ) : photos.length > 0 ? (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
           {photos.map((photo) => (
-            <div key={photo.id} className="relative">
+            <div key={photo.id} className="relative group">
               <img
                 src={photo.url}
                 alt="Foto subida"
@@ -129,6 +135,13 @@ export default function Profile() {
                   ? "👥"
                   : "🔒"}
               </span>
+              <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition flex items-center justify-center text-white text-sm font-medium">
+                {photo.visibility === "public"
+                  ? "Visible para todos"
+                  : photo.visibility === "friends"
+                  ? "Solo amigos"
+                  : "Solo tú"}
+              </div>
             </div>
           ))}
         </div>
@@ -138,6 +151,7 @@ export default function Profile() {
     </div>
   );
 }
+
 
 
 

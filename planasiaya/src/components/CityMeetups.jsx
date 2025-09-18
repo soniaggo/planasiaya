@@ -14,9 +14,11 @@ import { useUser } from "../context/UserContext";
 
 export default function CityMeetups({ city, country }) {
   const { user, profile } = useUser();
-  const [meetups, setMeetups] = useState([]);
   const [title, setTitle] = useState("");
+  const [meetups, setMeetups] = useState([]);
+  const [loading, setLoading] = useState(false);
 
+  // 📌 Escuchar quedadas activas en tiempo real
   useEffect(() => {
     const now = new Date();
     const q = query(
@@ -37,8 +39,11 @@ export default function CityMeetups({ city, country }) {
     return () => unsubscribe();
   }, [city]);
 
+  // 📌 Crear quedada
   const createMeetup = async () => {
     if (!title.trim() || !user) return;
+    setLoading(true);
+
     const expiresAt = new Date(Date.now() + 2 * 60 * 60 * 1000); // 2h
     await addDoc(collection(db, "cityMeetups"), {
       title,
@@ -49,32 +54,35 @@ export default function CityMeetups({ city, country }) {
       createdAt: serverTimestamp(),
       expiresAt,
     });
+
     setTitle("");
+    setLoading(false);
   };
 
   return (
     <div className="mt-6 p-4 bg-white dark:bg-gray-800 rounded-lg shadow">
-      <h2 className="text-xl font-bold mb-3">📍 Quedadas en {city}</h2>
+      <h2 className="text-xl font-bold mb-3">📅 Quedadas en {city}</h2>
 
       {user ? (
-        <div className="flex flex-wrap gap-2 mb-4">
+        <div className="flex gap-2 flex-wrap mb-4">
           <input
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            placeholder="Ej: Tomar algo al atardecer"
-            className="flex-1 border rounded px-2 py-2 min-w-[150px]"
+            placeholder="Ej: Cena de mochileros"
+            className="flex-1 border rounded px-2 py-1"
             onKeyDown={(e) => e.key === "Enter" && createMeetup()}
           />
           <button
             onClick={createMeetup}
-            className="bg-brand text-white px-4 py-2 rounded hover:bg-brand-dark"
+            disabled={loading}
+            className="bg-brand text-white px-4 py-1 rounded hover:bg-brand-dark disabled:opacity-50"
           >
-            Crear
+            {loading ? "Creando..." : "Crear"}
           </button>
         </div>
       ) : (
-        <p className="text-sm text-gray-500 mb-4">
+        <p className="text-sm text-gray-500">
           Inicia sesión para crear una quedada.
         </p>
       )}
@@ -84,7 +92,7 @@ export default function CityMeetups({ city, country }) {
           meetups.map((m) => (
             <div
               key={m.id}
-              className="p-4 bg-white dark:bg-gray-800 rounded-lg shadow flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3"
+              className="p-3 bg-gray-100 dark:bg-gray-700 rounded-lg shadow flex flex-col sm:flex-row sm:items-center sm:justify-between"
             >
               <div>
                 <p className="font-bold">{m.title}</p>
@@ -98,19 +106,18 @@ export default function CityMeetups({ city, country }) {
                         hour: "2-digit",
                         minute: "2-digit",
                       })
-                    : "Sin fecha"}
+                    : ""}
                 </p>
               </div>
-              <button className="bg-brand text-white px-3 py-1 rounded-lg shadow hover:bg-brand-dark text-sm font-semibold">
+              <button className="mt-2 sm:mt-0 bg-brand text-white px-3 py-1 rounded-lg shadow hover:bg-brand-dark text-sm font-semibold">
                 Unirme
               </button>
             </div>
           ))
         ) : (
-          <p className="text-gray-500">No hay quedadas activas ahora mismo.</p>
+          <p className="text-gray-500">No hay quedadas activas.</p>
         )}
       </div>
     </div>
   );
 }
-

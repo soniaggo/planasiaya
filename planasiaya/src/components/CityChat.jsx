@@ -1,5 +1,4 @@
 
-
 import { useEffect, useState, useRef } from "react";
 import { db } from "../firebaseConfig";
 import {
@@ -17,8 +16,10 @@ export default function CityChat({ city }) {
   const { user, profile } = useUser();
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
+  const [loading, setLoading] = useState(false);
   const chatEndRef = useRef(null);
 
+  // 📌 Escuchar mensajes en tiempo real
   useEffect(() => {
     const q = query(
       collection(db, "cityChats"),
@@ -40,8 +41,10 @@ export default function CityChat({ city }) {
     return () => unsubscribe();
   }, [city]);
 
+  // 📌 Enviar mensaje
   const sendMessage = async () => {
     if (!newMessage.trim() || !user) return;
+    setLoading(true);
     await addDoc(collection(db, "cityChats"), {
       city,
       text: newMessage,
@@ -50,13 +53,14 @@ export default function CityChat({ city }) {
       createdAt: serverTimestamp(),
     });
     setNewMessage("");
+    setLoading(false);
   };
 
   return (
     <div className="mt-6 p-4 bg-white dark:bg-gray-800 rounded-lg shadow">
       <h2 className="text-xl font-bold mb-3">💬 Chat en {city}</h2>
 
-      {/* Mensajes */}
+      {/* Área de mensajes */}
       <div className="max-h-[50vh] overflow-y-auto border rounded p-2 mb-2 bg-gray-50 dark:bg-gray-700">
         {messages.map((msg) => {
           const isMine = msg.userId === user?.uid;
@@ -74,6 +78,14 @@ export default function CityChat({ city }) {
               >
                 <p className="font-semibold">{isMine ? "Tú" : msg.userName}</p>
                 <p>{msg.text}</p>
+                <p className="text-xs opacity-70 mt-1">
+                  {msg.createdAt?.toDate
+                    ? msg.createdAt.toDate().toLocaleTimeString([], {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })
+                    : ""}
+                </p>
               </div>
             </div>
           );
@@ -83,20 +95,21 @@ export default function CityChat({ city }) {
 
       {/* Input */}
       {user ? (
-        <div className="flex flex-wrap gap-2">
+        <div className="flex gap-2 flex-wrap">
           <input
             type="text"
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
             placeholder="Escribe un mensaje..."
-            className="flex-1 border rounded px-2 py-2 min-w-[150px]"
+            className="flex-1 border rounded px-2 py-1"
             onKeyDown={(e) => e.key === "Enter" && sendMessage()}
           />
           <button
             onClick={sendMessage}
-            className="bg-brand text-white px-4 py-2 rounded hover:bg-brand-dark"
+            disabled={loading}
+            className="bg-brand text-white px-4 py-1 rounded hover:bg-brand-dark disabled:opacity-50"
           >
-            Enviar
+            {loading ? "Enviando..." : "Enviar"}
           </button>
         </div>
       ) : (
@@ -107,9 +120,5 @@ export default function CityChat({ city }) {
     </div>
   );
 }
-
-
-
-
 
 

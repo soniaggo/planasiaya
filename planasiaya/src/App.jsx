@@ -5,6 +5,7 @@ import { Outlet, Link, useLocation } from "react-router-dom";
 import { Home, Map, Users, CalendarDays, User, Moon, Sun } from "lucide-react";
 import { useUser } from "./context/UserContext";
 import { useTheme } from "./context/ThemeContext";
+import { AnimatePresence, motion } from "framer-motion";
 
 export default function App() {
   const location = useLocation();
@@ -27,10 +28,11 @@ export default function App() {
       icon: <Users className="w-6 h-6 lg:w-7 lg:h-7" />,
       label: "Comunidad",
     },
-    { path: "/allmeetups", 
-      icon: <CalendarDays className="w-6 h-6 lg:w-7 lg:h-7" />, 
-      label: "Quedadas" },
-
+    {
+      path: "/allmeetups",
+      icon: <CalendarDays className="w-6 h-6 lg:w-7 lg:h-7" />,
+      label: "Quedadas",
+    },
     {
       path: profile ? "/profile" : "/login",
       icon: <User className="w-6 h-6 lg:w-7 lg:h-7" />,
@@ -40,12 +42,23 @@ export default function App() {
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 font-poppins">
-      {/* Contenido principal */}
+      {/* Contenido principal con animación */}
       <main className="flex-1 pb-16 lg:pb-0 order-first lg:order-last">
-        <Outlet />
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={location.pathname} // importante para detectar cambios de ruta
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -15 }}
+            transition={{ duration: 0.35, ease: "easeInOut" }}
+            className="h-full"
+          >
+            <Outlet />
+          </motion.div>
+        </AnimatePresence>
       </main>
 
-      {/* Menú de navegación */}
+      {/* Menú de navegación inferior */}
       <nav
         className="
           order-last lg:order-first
@@ -93,7 +106,6 @@ export default function App() {
     </div>
   );
 }
-
 
 
 

@@ -1,5 +1,6 @@
 
 
+
 import { useUser } from "../context/UserContext";
 import { Link } from "react-router-dom";
 import guidesData from "../data/guidesData";
@@ -9,6 +10,7 @@ import Loader from "../components/Loader";
 import { collection, query, where, onSnapshot } from "firebase/firestore";
 import { useEffect, useState } from "react";
 import { db } from "../firebaseConfig";
+import { motion } from "framer-motion";
 
 export default function Profile() {
   const { user, profile, removeFavorite } = useUser();
@@ -58,9 +60,19 @@ export default function Profile() {
   }, [user]);
 
   return (
-    <div className="p-6 max-w-5xl mx-auto">
+    <motion.div
+      className="p-6 max-w-5xl mx-auto"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+    >
       {/* Cabecera de perfil */}
-      <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg">
+      <motion.div
+        className="flex flex-col sm:flex-row items-center sm:items-start gap-6 bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg"
+        initial={{ y: -20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.6 }}
+      >
         {/* Foto de usuario */}
         <div className="w-28 h-28 rounded-full bg-gradient-to-r from-brand to-brand-light flex items-center justify-center text-white font-bold text-3xl shadow-lg">
           {profile?.displayName?.charAt(0).toUpperCase() || "U"}
@@ -81,10 +93,13 @@ export default function Profile() {
         </div>
 
         {/* Botón editar */}
-        <button className="flex items-center gap-2 px-4 py-2 bg-brand text-white rounded-lg shadow hover:bg-brand-dark">
+        <motion.button
+          whileTap={{ scale: 0.9 }}
+          className="flex items-center gap-2 px-4 py-2 bg-brand text-white rounded-lg shadow hover:bg-brand-dark"
+        >
           <Edit3 size={18} /> Editar perfil
-        </button>
-      </div>
+        </motion.button>
+      </motion.div>
 
       {/* Favoritos */}
       <section className="mt-10">
@@ -92,11 +107,25 @@ export default function Profile() {
           ❤️ Mis destinos favoritos
         </h2>
         {favoriteDetails?.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+          <motion.div
+            className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6"
+            initial="hidden"
+            animate="visible"
+            variants={{
+              hidden: {},
+              visible: {
+                transition: { staggerChildren: 0.15 },
+              },
+            }}
+          >
             {favoriteDetails.map((fav, i) => (
-              <div
+              <motion.div
                 key={i}
                 className="group bg-white dark:bg-darkCard rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 relative"
+                variants={{
+                  hidden: { opacity: 0, y: 20 },
+                  visible: { opacity: 1, y: 0 },
+                }}
               >
                 <button
                   onClick={() => removeFavorite(fav.name)}
@@ -107,11 +136,13 @@ export default function Profile() {
                 </button>
                 <Link to={fav.path}>
                   <div className="relative w-full h-40 md:h-48 overflow-hidden">
-                    <img
+                    <motion.img
                       src={fav.image}
                       alt={fav.name}
                       loading="lazy"
-                      className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500"
+                      className="w-full h-full object-cover"
+                      whileHover={{ scale: 1.05 }}
+                      transition={{ duration: 0.4 }}
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
                   </div>
@@ -121,9 +152,9 @@ export default function Profile() {
                     </h3>
                   </div>
                 </Link>
-              </div>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         ) : (
           <p className="text-gray-600 dark:text-gray-300">
             Todavía no has guardado destinos como favoritos.
@@ -143,11 +174,25 @@ export default function Profile() {
         {loadingPhotos ? (
           <Loader text="Cargando tus fotos..." />
         ) : photos.length > 0 ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+          <motion.div
+            className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4"
+            initial="hidden"
+            animate="visible"
+            variants={{
+              hidden: {},
+              visible: {
+                transition: { staggerChildren: 0.1 },
+              },
+            }}
+          >
             {photos.map((photo) => (
-              <div
+              <motion.div
                 key={photo.id}
                 className="relative group bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden"
+                variants={{
+                  hidden: { opacity: 0, scale: 0.9 },
+                  visible: { opacity: 1, scale: 1 },
+                }}
               >
                 <img
                   src={photo.url}
@@ -164,18 +209,16 @@ export default function Profile() {
                       : "🔒"}
                   </span>
                 </div>
-              </div>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         ) : (
           <p className="text-gray-500">Todavía no has subido fotos.</p>
         )}
       </section>
-    </div>
+    </motion.div>
   );
 }
-
-
 
 
 

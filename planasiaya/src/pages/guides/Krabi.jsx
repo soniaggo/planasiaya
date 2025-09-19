@@ -59,7 +59,7 @@ export default function Krabi() {
         </ul>
       </section>
       <CityChat city="krabi" />
-      <CityMeetups city="krabi" />
+      <CityMeetups city="krabi" country="Tailandia" />
       {/* Botón flotante */}
       <BackButton />
     </div>

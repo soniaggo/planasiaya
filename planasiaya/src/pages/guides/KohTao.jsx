@@ -61,7 +61,7 @@ export default function KohTao() {
         </ul>
       </section>
       <CityChat city="kohtao" />
-      <CityMeetups city="kohtao" />
+      <CityMeetups city="kohtao"  country="Tailandia"/>
       {/* Botón flotante */}
       <BackButton />
     </div>

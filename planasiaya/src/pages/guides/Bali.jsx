@@ -63,7 +63,7 @@ export default function Bali() {
       </section>
 
        <CityChat city="bali" /> 
-      <CityMeetups city="bali" />
+      <CityMeetups city="bali"  country="Indonesia"/>
 
       {/* Botón flotante */}
       <BackButton />

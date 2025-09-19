@@ -60,7 +60,7 @@ export default function Bangkok() {
       </section>
 
       <CityChat city="bangkok" />
-      <CityMeetups city="bangkok" />
+      <CityMeetups city="bangkok" country="Tailandia" />
       {/* Botón flotante */}
       <BackButton />
     </div>

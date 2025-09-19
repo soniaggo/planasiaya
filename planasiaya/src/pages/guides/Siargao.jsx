@@ -60,7 +60,7 @@ export default function Siargao() {
         </ul>
       </section>
       <CityChat city="siargao" />   
-      <CityMeetups city="siargao" />
+      <CityMeetups city="siargao"country="Filipinas"  />
       {/* Botón flotante */}
       <BackButton />
     </div>

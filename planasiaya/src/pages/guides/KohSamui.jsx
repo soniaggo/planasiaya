@@ -1,70 +1,75 @@
-// src/pages/guides/KohSamui.jsx
+
+
 import BackButton from "../../components/BackButton";
-import CityChat from "../../components/CityChat";
-import CityMeetups from "../../components/CityMeetups";
+import { Link } from "react-router-dom";
 
 export default function KohSamui() {
   return (
     <div className="p-4 space-y-6">
-      {/* Título */}
-      <h1 className="text-3xl font-bold text-green-700">Guía de Koh Samui</h1>
+      <h1 className="text-3xl font-bold text-emerald-700">Guía de Koh Samui</h1>
 
-      {/* Introducción */}
       <section>
-        <h2 className="text-2xl font-semibold mb-2">🌴 Introducción</h2>
+        <h2 className="text-2xl font-semibold mb-2">🏝️ Introducción</h2>
         <p>
-          Koh Samui es una de las islas más famosas de Tailandia, conocida por
-          sus playas de arena blanca, resorts de lujo, templos impresionantes y
-          una vida nocturna animada. Es un destino que combina relax, naturaleza
-          y diversión.
+          Koh Samui es una de las islas más grandes y turísticas de Tailandia,
+          famosa por sus playas, templos, resorts de lujo y vida nocturna.
         </p>
       </section>
 
-      {/* Qué ver y hacer */}
       <section>
-        <h2 className="text-2xl font-semibold mb-2">🏝️ Qué ver y hacer</h2>
+        <h2 className="text-2xl font-semibold mb-2">🌴 Qué ver</h2>
         <ul className="list-disc list-inside space-y-1">
-          <li>Templo del Gran Buda (Wat Phra Yai).</li>
-          <li>Playas populares como Chaweng y Lamai.</li>
-          <li>Excursión al Parque Marino de Ang Thong.</li>
-          <li>Cascadas de Na Muang.</li>
+          <li>Big Buddha, el icónico templo con la estatua dorada.</li>
+          <li>Playa de Chaweng para vida nocturna.</li>
+          <li>Playa de Lamai para ambiente más relajado.</li>
+          <li>Parque Nacional Marino Ang Thong (excursión en barco).</li>
         </ul>
       </section>
 
-      {/* Dónde comer */}
       <section>
-        <h2 className="text-2xl font-semibold mb-2">🍲 Dónde comer</h2>
+        <h2 className="text-2xl font-semibold mb-2">🍹 Dónde comer</h2>
         <p>
-          Koh Samui ofrece una gastronomía variada: desde mercados nocturnos
-          locales como el de Fisherman’s Village hasta restaurantes gourmet en
-          la playa. No dejes de probar el marisco fresco.
+          Desde restaurantes locales con curry tailandés hasta beach clubs de lujo
+          con cócteles frente al mar. Fisherman’s Village es ideal para cenar y pasear.
         </p>
       </section>
 
-      {/* Transporte */}
       <section>
-        <h2 className="text-2xl font-semibold mb-2">🚗 Transporte</h2>
+        <h2 className="text-2xl font-semibold mb-2">🚙 Transporte</h2>
         <p>
-          Puedes moverte en moto, taxi o songthaew (camionetas compartidas). 
-          Otra opción es alquilar un coche si viajas en grupo.
+          Puedes alquilar moto o coche. También hay taxis, aunque suelen ser más caros
+          que en otras islas.
         </p>
       </section>
 
-      {/* Tips */}
       <section>
         <h2 className="text-2xl font-semibold mb-2">💡 Tips</h2>
         <ul className="list-disc list-inside space-y-1">
-          <li>Visita los templos con ropa adecuada.</li>
-          <li>El clima puede ser húmedo, lleva siempre impermeable ligero.</li>
-          <li>No te pierdas un masaje tailandés frente al mar.</li>
+          <li>Visita los templos con vestimenta adecuada.</li>
+          <li>Reserva excursiones al Parque Marino con antelación.</li>
+          <li>La temporada seca es de diciembre a abril.</li>
         </ul>
       </section>
-      <CityChat city="kohsamui" />
-      <CityMeetups city="kohsamui"country="Tailandia"  />
-      {/* Botón flotante */}
+
+      {/* Botones */}
+      <div className="flex flex-col gap-3 mt-6">
+        <Link
+          to="/citychat/koh-samui"
+          className="px-4 py-2 rounded-lg bg-blue-600 text-white text-center font-semibold shadow hover:bg-blue-700 transition"
+        >
+          💬 Ir al Chat de Koh Samui
+        </Link>
+
+        <Link
+          to="/citymeetups/koh-samui"
+          className="px-4 py-2 rounded-lg bg-green-600 text-white text-center font-semibold shadow hover:bg-green-700 transition"
+        >
+          📅 Ver Quedadas en Koh Samui
+        </Link>
+      </div>
+
       <BackButton />
     </div>
   );
 }
-
 

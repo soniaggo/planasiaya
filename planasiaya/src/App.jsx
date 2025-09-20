@@ -5,57 +5,31 @@ import { Outlet, Link, useLocation } from "react-router-dom";
 import { Home, Map, Users, CalendarDays, User, Moon, Sun } from "lucide-react";
 import { useUser } from "./context/UserContext";
 import { useTheme } from "./context/ThemeContext";
-import { AnimatePresence, motion } from "framer-motion";
+import { useEffect } from "react";
 
 export default function App() {
   const location = useLocation();
   const { profile } = useUser();
   const { theme, toggleTheme } = useTheme();
 
+  // Scroll arriba en cada navegación (mejora UX y evita “pantallas congeladas”)
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "instant" });
+  }, [location.pathname]);
+
   const menuItems = [
-    {
-      path: "/",
-      icon: <Home className="w-6 h-6 lg:w-7 lg:h-7" />,
-      label: "Inicio",
-    },
-    {
-      path: "/guides",
-      icon: <Map className="w-6 h-6 lg:w-7 lg:h-7" />,
-      label: "Guías",
-    },
-    {
-      path: "/community",
-      icon: <Users className="w-6 h-6 lg:w-7 lg:h-7" />,
-      label: "Comunidad",
-    },
-    {
-      path: "/allmeetups",
-      icon: <CalendarDays className="w-6 h-6 lg:w-7 lg:h-7" />,
-      label: "Quedadas",
-    },
-    {
-      path: profile ? "/profile" : "/login",
-      icon: <User className="w-6 h-6 lg:w-7 lg:h-7" />,
-      label: profile?.displayName || "Perfil",
-    },
+    { path: "/", icon: <Home className="w-6 h-6 lg:w-7 lg:h-7" />, label: "Inicio" },
+    { path: "/guides", icon: <Map className="w-6 h-6 lg:w-7 lg:h-7" />, label: "Guías" },
+    { path: "/community", icon: <Users className="w-6 h-6 lg:w-7 lg:h-7" />, label: "Comunidad" },
+    { path: "/allmeetups", icon: <CalendarDays className="w-6 h-6 lg:w-7 lg:h-7" />, label: "Quedadas" },
+    { path: profile ? "/profile" : "/login", icon: <User className="w-6 h-6 lg:w-7 lg:h-7" />, label: profile?.displayName || "Perfil" },
   ];
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 font-poppins">
-      {/* Contenido principal con animación */}
+      {/* Contenido principal */}
       <main className="flex-1 pb-16 lg:pb-0 order-first lg:order-last">
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={location.pathname} // importante para detectar cambios de ruta
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -15 }}
-            transition={{ duration: 0.35, ease: "easeInOut" }}
-            className="h-full"
-          >
-            <Outlet />
-          </motion.div>
-        </AnimatePresence>
+        <Outlet />
       </main>
 
       {/* Menú de navegación inferior */}
@@ -77,10 +51,9 @@ export default function App() {
             <Link
               key={item.path}
               to={item.path}
+              aria-label={item.label}
               className={`relative flex flex-col items-center justify-center transition-transform duration-300 ${
-                isActive
-                  ? "text-brand scale-110"
-                  : "text-gray-500 hover:text-brand hover:scale-105"
+                isActive ? "text-brand scale-110" : "text-gray-500 hover:text-brand hover:scale-105"
               }`}
             >
               {item.icon}
@@ -94,6 +67,7 @@ export default function App() {
         {/* Botón modo oscuro/claro */}
         <button
           onClick={toggleTheme}
+          aria-label="Cambiar tema"
           className="flex flex-col items-center justify-center transition-transform duration-300 text-gray-500 hover:text-brand hover:scale-105"
         >
           {theme === "light" ? (

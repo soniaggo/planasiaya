@@ -1,7 +1,8 @@
-// src/pages/guides/Bali.jsx
+
+   
+
 import BackButton from "../../components/BackButton";
-import CityChat from "../../components/CityChat"; 
-import CityMeetups from "../../components/CityMeetups";
+import { Link } from "react-router-dom";
 
 export default function Bali() {
   return (
@@ -62,13 +63,26 @@ export default function Bali() {
         </ul>
       </section>
 
-       <CityChat city="bali" /> 
-      <CityMeetups city="bali"  country="Indonesia"/>
+      {/* Botones en lugar de CityChat y CityMeetups */}
+      <div className="flex flex-col gap-3 mt-6">
+        <Link
+          to="/citychat/bali"
+          className="px-4 py-2 rounded-lg bg-blue-600 text-white text-center font-semibold shadow hover:bg-blue-700 transition"
+        >
+          💬 Ir al Chat de Bali
+        </Link>
+
+        <Link
+          to="/citymeetups/bali"
+          className="px-4 py-2 rounded-lg bg-green-600 text-white text-center font-semibold shadow hover:bg-green-700 transition"
+        >
+          📅 Ver Quedadas en Bali
+        </Link>
+      </div>
 
       {/* Botón flotante */}
       <BackButton />
     </div>
   );
 }
-
 

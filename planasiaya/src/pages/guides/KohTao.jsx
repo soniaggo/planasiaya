@@ -1,70 +1,74 @@
-// src/pages/guides/KohTao.jsx
+
+
 import BackButton from "../../components/BackButton";
-import CityChat from "../../components/CityChat";
-import CityMeetups from "../../components/CityMeetups";
+import { Link } from "react-router-dom";
 
 export default function KohTao() {
   return (
     <div className="p-4 space-y-6">
-      {/* Título */}
       <h1 className="text-3xl font-bold text-teal-700">Guía de Koh Tao</h1>
 
-      {/* Introducción */}
       <section>
-        <h2 className="text-2xl font-semibold mb-2">🌊 Introducción</h2>
+        <h2 className="text-2xl font-semibold mb-2">🏝️ Introducción</h2>
         <p>
-          Koh Tao, conocida como la isla de las tortugas, es un paraíso para el
-          buceo y el snorkel. Sus aguas cristalinas y arrecifes de coral atraen
-          a viajeros de todo el mundo, además de tener un ambiente relajado ideal
-          para mochileros.
+          Koh Tao es una pequeña isla en el Golfo de Tailandia, conocida como el
+          paraíso del buceo gracias a sus aguas cristalinas y arrecifes de coral.
         </p>
       </section>
 
-      {/* Qué ver y hacer */}
       <section>
-        <h2 className="text-2xl font-semibold mb-2">🤿 Qué ver y hacer</h2>
+        <h2 className="text-2xl font-semibold mb-2">🤿 Qué ver</h2>
         <ul className="list-disc list-inside space-y-1">
-          <li>Practicar buceo en Shark Bay o Chumphon Pinnacle.</li>
-          <li>Subir al mirador de John-Suwan Viewpoint.</li>
-          <li>Explorar playas tranquilas como Ao Leuk o Sai Nuan.</li>
-          <li>Excursiones en barco alrededor de la isla.</li>
+          <li>Sairee Beach, la playa más popular.</li>
+          <li>Shark Bay, para hacer snorkel con tiburones inofensivos.</li>
+          <li>Excursión en barco alrededor de la isla.</li>
+          <li>Miradores como John-Suwan Viewpoint.</li>
         </ul>
       </section>
 
-      {/* Dónde comer */}
       <section>
-        <h2 className="text-2xl font-semibold mb-2">🍛 Dónde comer</h2>
+        <h2 className="text-2xl font-semibold mb-2">🍲 Dónde comer</h2>
         <p>
-          Koh Tao ofrece desde restaurantes tailandeses baratos hasta opciones
-          internacionales. Prueba los currys en Sairee Beach y disfruta de cenas
-          junto al mar con marisco fresco.
+          En Sairee encontrarás una gran variedad de restaurantes internacionales,
+          bares frente al mar y puestos locales con comida tailandesa auténtica.
         </p>
       </section>
 
-      {/* Transporte */}
       <section>
         <h2 className="text-2xl font-semibold mb-2">🛵 Transporte</h2>
         <p>
-          La forma más común de moverse es alquilar una moto, aunque también hay
-          taxis locales (songthaews). Ten en cuenta que algunas carreteras son
-          empinadas y conviene conducir con precaución.
+          Lo mejor es alquilar una moto para moverte por la isla. También hay taxis
+          en barca para ir a playas más escondidas.
         </p>
       </section>
 
-      {/* Tips */}
       <section>
         <h2 className="text-2xl font-semibold mb-2">💡 Tips</h2>
         <ul className="list-disc list-inside space-y-1">
-          <li>Lleva gafas de snorkel: hay vida marina en casi todas las playas.</li>
-          <li>Elige bien la escuela de buceo, hay muchas y de distintos niveles.</li>
-          <li>Si buscas tranquilidad, alójate lejos de Sairee Beach.</li>
+          <li>Aprovecha para sacarte el curso de buceo, es uno de los más baratos del mundo.</li>
+          <li>Usa calzado adecuado, algunas carreteras son empinadas.</li>
+          <li>Evita viajar en temporada de monzones (noviembre-diciembre).</li>
         </ul>
       </section>
-      <CityChat city="kohtao" />
-      <CityMeetups city="kohtao"  country="Tailandia"/>
-      {/* Botón flotante */}
+
+      {/* Botones */}
+      <div className="flex flex-col gap-3 mt-6">
+        <Link
+          to="/citychat/koh-tao"
+          className="px-4 py-2 rounded-lg bg-blue-600 text-white text-center font-semibold shadow hover:bg-blue-700 transition"
+        >
+          💬 Ir al Chat de Koh Tao
+        </Link>
+
+        <Link
+          to="/citymeetups/koh-tao"
+          className="px-4 py-2 rounded-lg bg-green-600 text-white text-center font-semibold shadow hover:bg-green-700 transition"
+        >
+          📅 Ver Quedadas en Koh Tao
+        </Link>
+      </div>
+
       <BackButton />
     </div>
   );
 }
-

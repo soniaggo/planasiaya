@@ -1,7 +1,8 @@
-import BackButton from "../../components/BackButton";
-import CityChat from "../../components/CityChat";
-import CityMeetups from "../../components/CityMeetups";
 
+
+// src/pages/guides/Bangkok.jsx
+import BackButton from "../../components/BackButton";
+import { Link } from "react-router-dom";
 
 export default function Bangkok() {
   return (
@@ -59,11 +60,25 @@ export default function Bangkok() {
         </ul>
       </section>
 
-      <CityChat city="bangkok" />
-      <CityMeetups city="bangkok" country="Tailandia" />
-      {/* Botón flotante */}
+      {/* Botones de acción */}
+      <div className="flex flex-col sm:flex-row gap-4 mt-6">
+        <Link
+          to="/citychat/bangkok"
+          className="px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition text-center"
+        >
+          Ir al Chat de Bangkok 💬
+        </Link>
+
+        <Link
+          to="/citymeetups/bangkok"
+          className="px-4 py-2 bg-green-600 text-white rounded-lg shadow hover:bg-green-700 transition text-center"
+        >
+          Ver Quedadas en Bangkok 📅
+        </Link>
+      </div>
+
+      {/* Botón flotante para volver */}
       <BackButton />
     </div>
   );
 }
-

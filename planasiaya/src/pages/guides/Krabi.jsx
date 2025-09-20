@@ -1,68 +1,74 @@
-// src/pages/guides/Krabi.jsx
+
+
 import BackButton from "../../components/BackButton";
-import CityChat from "../../components/CityChat";
-import CityMeetups from "../../components/CityMeetups";
+import { Link } from "react-router-dom";
+
 export default function Krabi() {
   return (
     <div className="p-4 space-y-6">
-      {/* Título */}
-      <h1 className="text-3xl font-bold text-orange-600">Guía de Krabi</h1>
+      <h1 className="text-3xl font-bold text-orange-700">Guía de Krabi</h1>
 
-      {/* Introducción */}
       <section>
         <h2 className="text-2xl font-semibold mb-2">🏝️ Introducción</h2>
         <p>
-          Krabi, en el sur de Tailandia, es famoso por sus impresionantes acantilados
-          de piedra caliza, playas paradisíacas y excursiones a islas cercanas. 
-          Es un destino imprescindible para quienes buscan naturaleza y aventura.
+          Krabi es una provincia costera de Tailandia famosa por sus playas,
+          acantilados y excursiones a islas paradisíacas.
         </p>
       </section>
 
-      {/* Qué ver y hacer */}
       <section>
-        <h2 className="text-2xl font-semibold mb-2">🌅 Qué ver y hacer</h2>
+        <h2 className="text-2xl font-semibold mb-2">🌊 Qué ver</h2>
         <ul className="list-disc list-inside space-y-1">
-          <li>Railay Beach: una de las playas más bonitas de Tailandia.</li>
-          <li>Excursión en barco a las 4 Islas (Chicken, Poda, Tup y Phra Nang).</li>
-          <li>Templo de la Cueva del Tigre con sus 1.237 escalones y vistas increíbles.</li>
-          <li>Visitar Ao Nang y disfrutar de su ambiente mochilero.</li>
+          <li>Railay Beach y sus impresionantes acantilados.</li>
+          <li>Islas Phi Phi y excursión en barco.</li>
+          <li>Templo de la Cueva del Tigre.</li>
+          <li>Aguas termales de Krabi.</li>
         </ul>
       </section>
 
-      {/* Dónde comer */}
       <section>
-        <h2 className="text-2xl font-semibold mb-2">🍲 Dónde comer</h2>
+        <h2 className="text-2xl font-semibold mb-2">🍤 Dónde comer</h2>
         <p>
-          En Krabi encontrarás desde restaurantes locales hasta opciones 
-          internacionales. En Ao Nang hay una gran variedad de marisco fresco 
-          y comida callejera deliciosa. ¡No te pierdas el curry massaman!
+          Krabi tiene muchos restaurantes de marisco fresco, así como mercados
+          callejeros donde probar auténtica comida tailandesa.
         </p>
       </section>
 
-      {/* Transporte */}
       <section>
         <h2 className="text-2xl font-semibold mb-2">🚤 Transporte</h2>
         <p>
-          Desde Ao Nang puedes tomar barcos de cola larga hacia islas cercanas.
-          Para moverte en tierra, hay taxis, songthaews y motos de alquiler. 
-          El aeropuerto de Krabi conecta con Bangkok y otras ciudades de Asia.
+          Usa longtails (barcas tradicionales) para moverte entre playas e
+          islas. En tierra, puedes usar moto o tuk-tuk.
         </p>
       </section>
 
-      {/* Tips */}
       <section>
         <h2 className="text-2xl font-semibold mb-2">💡 Tips</h2>
         <ul className="list-disc list-inside space-y-1">
-          <li>Lleva calzado cómodo para subir al Templo del Tigre.</li>
-          <li>Compra tours en agencias locales, suelen ser más baratos que online.</li>
-          <li>En temporada alta, reserva alojamiento con antelación.</li>
+          <li>Lleva efectivo para pagar barcas y excursiones.</li>
+          <li>Visita Railay temprano para evitar aglomeraciones.</li>
+          <li>No olvides protector solar y repelente.</li>
         </ul>
       </section>
-      <CityChat city="krabi" />
-      <CityMeetups city="krabi" country="Tailandia" />
-      {/* Botón flotante */}
+
+      {/* Botones */}
+      <div className="flex flex-col gap-3 mt-6">
+        <Link
+          to="/citychat/krabi"
+          className="px-4 py-2 rounded-lg bg-blue-600 text-white text-center font-semibold shadow hover:bg-blue-700 transition"
+        >
+          💬 Ir al Chat de Krabi
+        </Link>
+
+        <Link
+          to="/citymeetups/krabi"
+          className="px-4 py-2 rounded-lg bg-green-600 text-white text-center font-semibold shadow hover:bg-green-700 transition"
+        >
+          📅 Ver Quedadas en Krabi
+        </Link>
+      </div>
+
       <BackButton />
     </div>
   );
 }
-

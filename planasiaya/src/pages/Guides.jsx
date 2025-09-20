@@ -6,6 +6,7 @@ import SEO from "../components/SEO";
 import guidesData from "../data/guidesData";
 import { useUser } from "../context/UserContext";
 import { motion } from "framer-motion";
+import PageFade from "../components/PageFade"
 
 export default function Guides() {
   const { user, profile, addFavorite, removeFavorite } = useUser();
@@ -24,6 +25,7 @@ export default function Guides() {
   };
 
   return (
+     <PageFade>
     <motion.div
       className="p-6"
       initial={{ opacity: 0 }}
@@ -113,10 +115,12 @@ export default function Guides() {
                   </div>
                 </Link>
               </motion.div>
+           
             ))}
           </motion.div>
         </motion.div>
       ))}
     </motion.div>
+    </PageFade>
   );
 }

@@ -1,6 +1,7 @@
+
 import React from "react";
 import ReactDOM from "react-dom/client";
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import { createBrowserRouter, RouterProvider, useParams } from "react-router-dom";
 import "./index.css";
 import { HelmetProvider } from "react-helmet-async";
 
@@ -17,6 +18,9 @@ import AllMeetups from "./pages/AllMeetups";
 import Profile from "./pages/Profile";
 import Register from "./pages/Register";
 import Login from "./pages/Login";
+import CityChatList from "./components/CityChatList";
+import CityChat from "./components/CityChat";
+import CityMeetups from "./components/CityMeetups";
 
 // Guías individuales
 import Bangkok from "./pages/guides/Bangkok";
@@ -31,6 +35,17 @@ import Siargao from "./pages/guides/Siargao";
 import Bohol from "./pages/guides/Bohol";
 import Camiguin from "./pages/guides/Camiguin";
 
+// Wrappers dinámicos para capturar params
+function CityMeetupsWrapper() {
+  const { city } = useParams();
+  return <CityMeetups city={city} />; // 👈 ya no pasamos country
+}
+
+function CityChatWrapper() {
+  const { chatId } = useParams();
+  return <CityChat chatId={chatId} />;
+}
+
 const router = createBrowserRouter([
   {
     path: "/",
@@ -44,6 +59,13 @@ const router = createBrowserRouter([
       { path: "/register", element: <Register /> },
       { path: "/login", element: <Login /> },
 
+      // Chat general y por ciudad
+      { path: "/citychat", element: <CityChatList /> },
+      { path: "/citychat/:chatId", element: <CityChatWrapper /> },
+
+      // Quedadas por ciudad
+      { path: "/citymeetups/:city", element: <CityMeetupsWrapper /> },
+
       // Rutas de guías
       { path: "/guides/bangkok", element: <Bangkok /> },
       { path: "/guides/chiang-mai", element: <ChiangMai /> },
@@ -55,7 +77,7 @@ const router = createBrowserRouter([
       { path: "/guides/gili", element: <Gili /> },
       { path: "/guides/siargao", element: <Siargao /> },
       { path: "/guides/bohol", element: <Bohol /> },
-      { path: "/guides/camiguin", element: <Camiguin /> }
+      { path: "/guides/camiguin", element: <Camiguin /> },
     ],
   },
 ]);
@@ -64,8 +86,8 @@ ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <HelmetProvider>
       <UserProvider>
-        <ThemeProvider> 
-        <RouterProvider router={router} />
+        <ThemeProvider>
+          <RouterProvider router={router} />
         </ThemeProvider>
       </UserProvider>
     </HelmetProvider>

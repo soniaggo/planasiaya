@@ -1,293 +1,215 @@
 
-// import { useEffect, useState } from "react";
-// import { db } from "../firebaseConfig";
-// import {
-//   collection,
-//   addDoc,
-//   query,
-//   where,
-//   orderBy,
-//   onSnapshot,
-//   serverTimestamp,
-// } from "firebase/firestore";
-// import { useUser } from "../context/UserContext";
-
-// export default function CityMeetups({ city, country }) {
-//   const { user, profile } = useUser();
-//   const [title, setTitle] = useState("");
-//   const [meetups, setMeetups] = useState([]);
-//   const [loading, setLoading] = useState(false);
-
-//   // 📌 Escuchar quedadas activas en tiempo real
-//   useEffect(() => {
-//     const now = new Date();
-//     const q = query(
-//       collection(db, "cityMeetups"),
-//       where("city", "==", city),
-//       where("expiresAt", ">", now),
-//       orderBy("expiresAt", "asc")
-//     );
-
-//     const unsubscribe = onSnapshot(q, (snapshot) => {
-//       const data = snapshot.docs.map((doc) => ({
-//         id: doc.id,
-//         ...doc.data(),
-//       }));
-//       setMeetups(data);
-//     });
-
-//     return () => unsubscribe();
-//   }, [city]);
-
-//   // 📌 Crear quedada
-//   const createMeetup = async () => {
-//     if (!title.trim() || !user) return;
-//     setLoading(true);
-
-//     const expiresAt = new Date(Date.now() + 2 * 60 * 60 * 1000); // 2h
-//     await addDoc(collection(db, "cityMeetups"), {
-//       title,
-//       city,
-//       country,
-//       authorId: user.uid,
-//       authorName: profile?.displayName || "Anónimo",
-//       createdAt: serverTimestamp(),
-//       expiresAt,
-//     });
-
-//     setTitle("");
-//     setLoading(false);
-//   };
-
-//   return (
-//     <div className="mt-6 p-4 bg-white dark:bg-gray-800 rounded-lg shadow">
-//       <h2 className="text-xl font-bold mb-3">📅 Quedadas en {city}</h2>
-
-//       {user ? (
-//         <div className="flex gap-2 flex-wrap mb-4">
-//           <input
-//             type="text"
-//             value={title}
-//             onChange={(e) => setTitle(e.target.value)}
-//             placeholder="Ej: Cena de mochileros"
-//             className="flex-1 border rounded px-2 py-1"
-//             onKeyDown={(e) => e.key === "Enter" && createMeetup()}
-//           />
-//           <button
-//             onClick={createMeetup}
-//             disabled={loading}
-//             className="bg-brand text-white px-4 py-1 rounded hover:bg-brand-dark disabled:opacity-50"
-//           >
-//             {loading ? "Creando..." : "Crear"}
-//           </button>
-//         </div>
-//       ) : (
-//         <p className="text-sm text-gray-500">
-//           Inicia sesión para crear una quedada.
-//         </p>
-//       )}
-
-//       <div className="space-y-3">
-//         {meetups.length > 0 ? (
-//           meetups.map((m) => (
-//             <div
-//               key={m.id}
-//               className="p-3 bg-gray-100 dark:bg-gray-700 rounded-lg shadow flex flex-col sm:flex-row sm:items-center sm:justify-between"
-//             >
-//               <div>
-//                 <p className="font-bold">{m.title}</p>
-//                 <p className="text-sm text-gray-600 dark:text-gray-300">
-//                   Autor: {m.authorName}
-//                 </p>
-//                 <p className="text-xs text-gray-500">
-//                   Expira:{" "}
-//                   {m.expiresAt?.toDate
-//                     ? m.expiresAt.toDate().toLocaleTimeString([], {
-//                         hour: "2-digit",
-//                         minute: "2-digit",
-//                       })
-//                     : ""}
-//                 </p>
-//               </div>
-//               <button className="mt-2 sm:mt-0 bg-brand text-white px-3 py-1 rounded-lg shadow hover:bg-brand-dark text-sm font-semibold">
-//                 Unirme
-//               </button>
-//             </div>
-//           ))
-//         ) : (
-//           <p className="text-gray-500">No hay quedadas activas.</p>
-//         )}
-//       </div>
-//     </div>
-//   );
-// }
 // src/components/CityMeetups.jsx
-// src/components/CityMeetups.jsx
-import { useEffect, useState } from "react";
-import { db } from "../firebaseConfig";
+import { useState, useEffect } from "react";
 import {
   collection,
   addDoc,
   query,
-  where,
-  orderBy,
   onSnapshot,
+  orderBy,
   serverTimestamp,
 } from "firebase/firestore";
+import { db } from "../firebaseConfig";
 import { useUser } from "../context/UserContext";
+import { useParams, useNavigate } from "react-router-dom";
 
-// 🎯 Importamos iconos realistas desde react-icons
-import {
-  FaHiking,
-  FaUmbrellaBeach,
-  FaCampground,
-  FaGlassCheers,
-} from "react-icons/fa";
-import { MdOutlineNaturePeople } from "react-icons/md";
+// Íconos
+import { FaHiking, FaGlassCheers, FaUmbrellaBeach, FaLandmark } from "react-icons/fa";
+import { GiForestCamp } from "react-icons/gi";
 
-export default function CityMeetups({ city, country }) {
-  const { user, profile } = useUser();
+export default function CityMeetups() {
+  const { user } = useUser();
+  const { city } = useParams(); // 👈 obtenemos la ciudad desde la URL
+  const navigate = useNavigate();
+
   const [meetups, setMeetups] = useState([]);
-  const [title, setTitle] = useState("");
-  const [category, setCategory] = useState("aventura");
-  const [ageRange, setAgeRange] = useState("indiferente");
+  const [showForm, setShowForm] = useState(false);
+  const [formData, setFormData] = useState({
+    title: "",
+    description: "",
+    date: "",
+    type: "naturaleza",
+    ageRange: "indiferente",
+  });
 
-  // 🔎 Escuchar quedadas en tiempo real
   useEffect(() => {
+    if (!city) return;
+
     const q = query(
-      collection(db, "cityMeetups"),
-      where("city", "==", city),
+      collection(db, "cityMeetups", city, "meetups"), // 👈 subcolección por ciudad
       orderBy("createdAt", "desc")
     );
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      const docs = snapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
-      setMeetups(docs);
+      const data = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+      setMeetups(data);
     });
 
     return () => unsubscribe();
   }, [city]);
 
-  // 📌 Crear una quedada
-  const createMeetup = async () => {
-    if (!title.trim() || !user) return;
-
-    const expiresAt = new Date();
-    expiresAt.setHours(expiresAt.getHours() + 6); // ⏰ 6 horas por defecto
-
-    await addDoc(collection(db, "cityMeetups"), {
-      city,
-      country,
-      title,
-      category,
-      ageRange,
-      authorId: user.uid,
-      authorName: profile?.displayName || "Anónimo",
-      createdAt: serverTimestamp(),
-      expiresAt,
-    });
-
-    setTitle("");
-    setCategory("aventura");
-    setAgeRange("indiferente");
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  // 🎨 Iconos de categorías
-  const categoryIcons = {
-    aventura: <FaHiking className="text-green-600 w-5 h-5" />,
-    naturaleza: <MdOutlineNaturePeople className="text-teal-600 w-5 h-5" />,
-    relax: <FaUmbrellaBeach className="text-yellow-500 w-5 h-5" />,
-    fiesta: <FaGlassCheers className="text-pink-500 w-5 h-5" />,
-    camping: <FaCampground className="text-orange-600 w-5 h-5" />,
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!user) return alert("Debes iniciar sesión para crear una quedada");
+
+    await addDoc(collection(db, "cityMeetups", city, "meetups"), {
+      ...formData,
+      city,
+      userId: user.uid,
+      userName: user.displayName || "Viajero",
+      createdAt: serverTimestamp(),
+    });
+
+    setFormData({
+      title: "",
+      description: "",
+      date: "",
+      type: "naturaleza",
+      ageRange: "indiferente",
+    });
+    setShowForm(false);
+  };
+
+  const typeIcons = {
+    naturaleza: <GiForestCamp className="w-6 h-6 text-green-600" />,
+    aventura: <FaHiking className="w-6 h-6 text-orange-600" />,
+    cultura: <FaLandmark className="w-6 h-6 text-blue-600" />,
+    fiesta: <FaGlassCheers className="w-6 h-6 text-pink-600" />,
+    relax: <FaUmbrellaBeach className="w-6 h-6 text-yellow-500" />,
   };
 
   return (
-    <div className="mt-6 p-4 bg-white dark:bg-gray-800 rounded-lg shadow">
-      <h2 className="text-xl font-bold mb-3">📍 Quedadas en {city}</h2>
+    <div className="p-4 border rounded-xl shadow bg-white space-y-4">
+      <h2 className="text-xl font-semibold text-blue-700">
+        📌 Quedadas en {city}
+      </h2>
 
-      {/* Listado de quedadas */}
-      <div className="space-y-3 mb-4">
-        {meetups.length > 0 ? (
-          meetups.map((m) => (
-            <div
-              key={m.id}
-              className="p-3 bg-gray-100 dark:bg-gray-700 rounded-lg shadow flex flex-col sm:flex-row sm:items-center sm:justify-between"
+      {/* Botón volver atrás */}
+      <button
+        onClick={() => navigate(-1)}
+        className="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-300 transition"
+      >
+        ⬅️ Volver
+      </button>
+
+      {/* Botón para abrir formulario */}
+      <button
+        onClick={() => setShowForm(!showForm)}
+        className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
+      >
+        {showForm ? "Cancelar" : "➕ Crear quedada"}
+      </button>
+
+      {/* Formulario */}
+      {showForm && (
+        <form
+          onSubmit={handleSubmit}
+          className="space-y-3 bg-gray-50 p-4 rounded-lg shadow-inner"
+        >
+          <input
+            type="text"
+            name="title"
+            placeholder="Título"
+            value={formData.title}
+            onChange={handleChange}
+            required
+            className="w-full border px-3 py-2 rounded"
+          />
+          <textarea
+            name="description"
+            placeholder="Descripción"
+            value={formData.description}
+            onChange={handleChange}
+            required
+            className="w-full border px-3 py-2 rounded"
+          />
+          <input
+            type="date"
+            name="date"
+            value={formData.date}
+            onChange={handleChange}
+            required
+            className="w-full border px-3 py-2 rounded"
+          />
+
+          {/* Tipo de quedada */}
+          <div>
+            <label className="font-semibold">Tipo de quedada:</label>
+            <div className="flex space-x-4 mt-2">
+              {Object.keys(typeIcons).map((type) => (
+                <label key={type} className="flex flex-col items-center">
+                  <input
+                    type="radio"
+                    name="type"
+                    value={type}
+                    checked={formData.type === type}
+                    onChange={handleChange}
+                    className="mb-1"
+                  />
+                  {typeIcons[type]}
+                  <span className="text-xs capitalize">{type}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          {/* Rango de edad */}
+          <div>
+            <label className="font-semibold">Rango de edad:</label>
+            <select
+              name="ageRange"
+              value={formData.ageRange}
+              onChange={handleChange}
+              className="w-full border px-3 py-2 rounded"
             >
-              <div>
-                <p className="font-bold flex items-center gap-2">
-                  {categoryIcons[m.category] || "❓"} {m.title}
-                </p>
-                <p className="text-sm text-gray-600 dark:text-gray-300">
-                  Autor: {m.authorName} • {m.ageRange}
-                </p>
+              <option value="indiferente">Indiferente</option>
+              <option value="18-25">18-25</option>
+              <option value="26-35">26-35</option>
+              <option value="36-50">36-50</option>
+              <option value="50+">50+</option>
+            </select>
+          </div>
+
+          <button
+            type="submit"
+            className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition"
+          >
+            Crear
+          </button>
+        </form>
+      )}
+
+      {/* Lista de quedadas */}
+      <div className="space-y-3">
+        {meetups.length > 0 ? (
+          meetups.map((meetup) => (
+            <div
+              key={meetup.id}
+              className="p-4 border rounded-lg shadow hover:bg-gray-50"
+            >
+              <div className="flex items-center space-x-2">
+                {typeIcons[meetup.type]}
+                <h3 className="text-lg font-bold">{meetup.title}</h3>
               </div>
-              <span className="mt-2 sm:mt-0 text-xs text-gray-500">
-                Expira:{" "}
-                {m.expiresAt?.toDate
-                  ? m.expiresAt.toDate().toLocaleTimeString([], {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })
-                  : "Sin fecha"}
-              </span>
+              <p className="text-sm text-gray-600">{meetup.description}</p>
+              <p className="text-sm">📅 {meetup.date}</p>
+              <p className="text-sm">👤 {meetup.userName}</p>
+              <p className="text-sm">🎯 Edad: {meetup.ageRange}</p>
             </div>
           ))
         ) : (
-          <p className="text-gray-500">No hay quedadas aún en esta ciudad.</p>
+          <p className="text-gray-500">No hay quedadas todavía en {city}.</p>
         )}
       </div>
-
-      {/* Crear nueva quedada */}
-      {user ? (
-        <div className="space-y-3">
-          <input
-            type="text"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder="Título de la quedada..."
-            className="w-full border rounded px-3 py-2"
-          />
-
-          {/* Select categoría */}
-          <select
-            value={category}
-            onChange={(e) => setCategory(e.target.value)}
-            className="w-full border rounded px-3 py-2"
-          >
-            <option value="aventura">Aventura 🥾</option>
-            <option value="naturaleza">Naturaleza 🌿</option>
-            <option value="relax">Relax 🏖️</option>
-            <option value="fiesta">Fiesta 🍻</option>
-            <option value="camping">Camping ⛺</option>
-          </select>
-
-          {/* Select rango de edad */}
-          <select
-            value={ageRange}
-            onChange={(e) => setAgeRange(e.target.value)}
-            className="w-full border rounded px-3 py-2"
-          >
-            <option value="indiferente">Indiferente</option>
-            <option value="20-30">20 - 30 años</option>
-            <option value="30-40">30 - 40 años</option>
-            <option value="40-55">40 - 55 años</option>
-          </select>
-
-          <button
-            onClick={createMeetup}
-            className="w-full bg-brand text-white px-4 py-2 rounded-lg shadow hover:bg-brand-dark transition"
-          >
-            Crear quedada
-          </button>
-        </div>
-      ) : (
-        <p className="text-sm text-gray-500">
-          Inicia sesión para crear una quedada.
-        </p>
-      )}
     </div>
   );
 }
+
+
+
+
+

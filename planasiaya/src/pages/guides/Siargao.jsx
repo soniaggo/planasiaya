@@ -1,69 +1,77 @@
-// src/pages/guides/Siargao.jsx
+
+
 import BackButton from "../../components/BackButton";
-import CityChat from "../../components/CityChat";
-import CityMeetups from "../../components/CityMeetups";
+import { Link } from "react-router-dom";
 
 export default function Siargao() {
   return (
     <div className="p-4 space-y-6">
-      {/* Título */}
-      <h1 className="text-3xl font-bold text-emerald-600">Guía de Siargao</h1>
+      <h1 className="text-3xl font-bold text-green-700">Guía de Siargao</h1>
 
-      {/* Introducción */}
       <section>
         <h2 className="text-2xl font-semibold mb-2">🏝️ Introducción</h2>
         <p>
-          Siargao es conocida como la capital del surf en Filipinas, pero la isla 
-          ofrece mucho más: lagunas turquesa, cuevas ocultas, palmeras infinitas 
-          y un ambiente relajado perfecto para mochileros y viajeros de aventura.
+          Siargao, conocida como la capital del surf en Filipinas, es una isla
+          paradisíaca con lagunas, cuevas y playas vírgenes. Aunque es famosa por
+          Cloud 9, también es ideal para quienes buscan naturaleza y aventura.
         </p>
       </section>
 
-      {/* Qué ver y hacer */}
       <section>
-        <h2 className="text-2xl font-semibold mb-2">🌊 Qué ver y hacer</h2>
+        <h2 className="text-2xl font-semibold mb-2">🌊 Qué ver</h2>
         <ul className="list-disc list-inside space-y-1">
-          <li>Cloud 9: la meca del surf, famosa por sus olas potentes.</li>
-          <li>Island Hopping: Naked Island, Daku Island y Guyam Island.</li>
-          <li>Sugba Lagoon: ideal para nadar, hacer paddle surf y saltar al agua.</li>
-          <li>Maasin River: el famoso columpio de cuerda sobre el río.</li>
+          <li>Cloud 9, uno de los mejores spots de surf del mundo.</li>
+          <li>Isla Naked, Isla Daku e Isla Guyam (island hopping).</li>
+          <li>Sugba Lagoon y sus aguas cristalinas.</li>
+          <li>Magpupungko Rock Pools en marea baja.</li>
         </ul>
       </section>
 
-      {/* Dónde comer */}
       <section>
         <h2 className="text-2xl font-semibold mb-2">🍴 Dónde comer</h2>
         <p>
-          General Luna está lleno de restaurantes modernos y locales de comida 
-          internacional. Prueba el "kinilaw" (ceviche filipino) y disfruta de 
-          cafés de especialidad en la zona de Cloud 9.
+          General Luna es el centro gastronómico, con restaurantes de comida
+          internacional, opciones veganas y mariscos frescos. No te pierdas el
+          Kinilaw, un ceviche filipino.
         </p>
       </section>
 
-      {/* Transporte */}
       <section>
         <h2 className="text-2xl font-semibold mb-2">🛵 Transporte</h2>
         <p>
-          La forma más común de moverse es alquilar una moto. También hay triciclos 
-          y habal-habal (moto-taxi). Desde el aeropuerto de Siargao puedes llegar 
-          fácilmente a General Luna en van compartida.
+          La mejor forma de recorrer Siargao es alquilar una moto. También puedes
+          contratar triciclos para trayectos cortos. Ten en cuenta que las
+          distancias entre atracciones pueden ser largas.
         </p>
       </section>
 
-      {/* Tips */}
       <section>
         <h2 className="text-2xl font-semibold mb-2">💡 Tips</h2>
         <ul className="list-disc list-inside space-y-1">
-          <li>La mejor época para surfear es de agosto a noviembre.</li>
-          <li>Lleva efectivo: pocos lugares aceptan tarjeta.</li>
-          <li>Respeta el ambiente local, no dejes basura en las playas ni en las lagunas.</li>
+          <li>El mejor momento para surfear es de septiembre a noviembre.</li>
+          <li>Lleva efectivo, no hay muchos cajeros automáticos.</li>
+          <li>Protégete del sol, el calor puede ser intenso.</li>
         </ul>
       </section>
-      <CityChat city="siargao" />   
-      <CityMeetups city="siargao"country="Filipinas"  />
-      {/* Botón flotante */}
+
+      {/* Botones */}
+      <div className="flex flex-col gap-3 mt-6">
+        <Link
+          to="/citychat/siargao"
+          className="px-4 py-2 rounded-lg bg-blue-600 text-white text-center font-semibold shadow hover:bg-blue-700 transition"
+        >
+          💬 Ir al Chat de Siargao
+        </Link>
+
+        <Link
+          to="/citymeetups/siargao"
+          className="px-4 py-2 rounded-lg bg-green-600 text-white text-center font-semibold shadow hover:bg-green-700 transition"
+        >
+          📅 Ver Quedadas en Siargao
+        </Link>
+      </div>
+
       <BackButton />
     </div>
   );
 }
-

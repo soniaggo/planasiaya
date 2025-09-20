@@ -1,124 +1,98 @@
 
-import { useEffect, useState, useRef } from "react";
-import { db } from "../firebaseConfig";
+
+// src/components/CityChat.jsx
+import { useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
 import {
   collection,
   addDoc,
   query,
-  where,
   orderBy,
   onSnapshot,
   serverTimestamp,
 } from "firebase/firestore";
+import { db } from "../firebaseConfig";
 import { useUser } from "../context/UserContext";
 
-export default function CityChat({ city }) {
-  const { user, profile } = useUser();
+export default function CityChat({ city: cityProp }) {
+  const { user } = useUser();
+  const { chatId } = useParams(); // si viene de la URL
+  const city = cityProp || chatId; // prioridad a la prop, si no usar la URL
+
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
-  const [loading, setLoading] = useState(false);
-  const chatEndRef = useRef(null);
 
-  // 📌 Escuchar mensajes en tiempo real
   useEffect(() => {
+    if (!city) return; // 👈 evita reventar si aún no hay city
+
     const q = query(
-      collection(db, "cityChats"),
-      where("city", "==", city),
+      collection(db, "cityChats", city, "messages"),
       orderBy("createdAt", "asc")
     );
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      const msgs = snapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
-      setMessages(msgs);
-      setTimeout(() => {
-        chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
-      }, 100);
+      const data = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+      setMessages(data);
     });
 
     return () => unsubscribe();
   }, [city]);
 
-  // 📌 Enviar mensaje
-  const sendMessage = async () => {
-    if (!newMessage.trim() || !user) return;
-    setLoading(true);
-    await addDoc(collection(db, "cityChats"), {
-      city,
+  const sendMessage = async (e) => {
+    e.preventDefault();
+    if (!user) return alert("Debes iniciar sesión para chatear");
+    if (!newMessage.trim()) return;
+
+    if (!city) return alert("Error: ciudad no encontrada");
+
+    await addDoc(collection(db, "cityChats", city, "messages"), {
       text: newMessage,
       userId: user.uid,
-      userName: profile?.displayName || "Anónimo",
+      userName: user.displayName || "Viajero",
       createdAt: serverTimestamp(),
     });
+
     setNewMessage("");
-    setLoading(false);
   };
 
   return (
-    <div className="mt-6 p-4 bg-white dark:bg-gray-800 rounded-lg shadow">
-      <h2 className="text-xl font-bold mb-3">💬 Chat en {city}</h2>
+    <div className="p-4 border rounded-xl shadow bg-white space-y-4">
+      <h2 className="text-xl font-semibold text-blue-700">
+        💬 Chat en {city || "cargando..."}
+      </h2>
 
-      {/* Área de mensajes */}
-      <div className="max-h-[50vh] overflow-y-auto border rounded p-2 mb-2 bg-gray-50 dark:bg-gray-700">
-        {messages.map((msg) => {
-          const isMine = msg.userId === user?.uid;
-          return (
-            <div
-              key={msg.id}
-              className={`flex mb-2 ${isMine ? "justify-end" : "justify-start"}`}
-            >
-              <div
-                className={`max-w-[70%] px-3 py-2 rounded-lg shadow text-sm ${
-                  isMine
-                    ? "bg-brand text-white rounded-br-none"
-                    : "bg-gray-200 dark:bg-gray-600 text-gray-900 dark:text-gray-100 rounded-bl-none"
-                }`}
-              >
-                <p className="font-semibold">{isMine ? "Tú" : msg.userName}</p>
-                <p>{msg.text}</p>
-                <p className="text-xs opacity-70 mt-1">
-                  {msg.createdAt?.toDate
-                    ? msg.createdAt.toDate().toLocaleTimeString([], {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })
-                    : ""}
-                </p>
-              </div>
-            </div>
-          );
-        })}
-        <div ref={chatEndRef}></div>
+      <div className="max-h-64 overflow-y-auto space-y-2 border p-2 rounded bg-gray-50">
+        {messages.map((msg) => (
+          <div key={msg.id} className="p-2 bg-white rounded shadow">
+            <p className="text-sm font-bold">{msg.userName}</p>
+            <p className="text-gray-700">{msg.text}</p>
+          </div>
+        ))}
+        {messages.length === 0 && (
+          <p className="text-gray-500 text-sm">Aún no hay mensajes.</p>
+        )}
       </div>
 
-      {/* Input */}
-      {user ? (
-        <div className="flex gap-2 flex-wrap">
-          <input
-            type="text"
-            value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value)}
-            placeholder="Escribe un mensaje..."
-            className="flex-1 border rounded px-2 py-1"
-            onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-          />
-          <button
-            onClick={sendMessage}
-            disabled={loading}
-            className="bg-brand text-white px-4 py-1 rounded hover:bg-brand-dark disabled:opacity-50"
-          >
-            {loading ? "Enviando..." : "Enviar"}
-          </button>
-        </div>
-      ) : (
-        <p className="text-sm text-gray-500">
-          Inicia sesión para participar en el chat.
-        </p>
-      )}
+      <form onSubmit={sendMessage} className="flex gap-2">
+        <input
+          type="text"
+          value={newMessage}
+          onChange={(e) => setNewMessage(e.target.value)}
+          placeholder="Escribe un mensaje..."
+          className="flex-1 border px-3 py-2 rounded"
+        />
+        <button
+          type="submit"
+          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
+        >
+          Enviar
+        </button>
+      </form>
     </div>
   );
 }
+
+
+
 
 

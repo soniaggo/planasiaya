@@ -8,163 +8,190 @@ import {
   query,
   onSnapshot,
   orderBy,
+  updateDoc,
+  arrayUnion,
+  arrayRemove,
+  Timestamp,
 } from "firebase/firestore";
 import { db } from "../firebaseConfig";
+import { useUser } from "../context/UserContext";
 import BackButton from "../components/BackButton";
+import {
+  FaHiking,
+  FaGlassCheers,
+  FaUmbrellaBeach,
+  FaLandmark,
+} from "react-icons/fa";
+import { GiForestCamp } from "react-icons/gi";
 
 export default function AllMeetups() {
+  const { user } = useUser();
   const [meetups, setMeetups] = useState([]);
-  const [filter, setFilter] = useState("all");
 
-  useEffect(() => {
-    const q = query(
-      collectionGroup(db, "meetups"),
-      orderBy("date", "asc")
-    );
+  const typeIcons = {
+    naturaleza: <GiForestCamp className="w-5 h-5 text-green-600" />,
+    aventura: <FaHiking className="w-5 h-5 text-orange-600" />,
+    cultura: <FaLandmark className="w-5 h-5 text-blue-600" />,
+    fiesta: <FaGlassCheers className="w-5 h-5 text-pink-600" />,
+    relax: <FaUmbrellaBeach className="w-5 h-5 text-yellow-500" />,
+  };
 
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const data = snapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
-      setMeetups(data);
-    });
+  const normalizeToDate = (d) => {
+    if (!d) return null;
+    if (d instanceof Timestamp) return d.toDate();
+    const asDate = new Date(d);
+    return isNaN(asDate.getTime()) ? null : asDate;
+  };
 
-    return () => unsubscribe();
-  }, []);
+  const endOfDay = (d) => {
+    const x = new Date(d);
+    x.setHours(23, 59, 59, 999);
+    return x;
+  };
 
-  const getFilteredMeetups = () => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+  const startOfDay = (d) => {
+    const x = new Date(d);
+    x.setHours(0, 0, 0, 0);
+    return x;
+  };
 
-    return meetups.filter((m) => {
-      if (!m.date) return false;
-      const meetupDate = new Date(m.date);
-      meetupDate.setHours(0, 0, 0, 0);
-
-      if (filter === "today") {
-        return meetupDate.getTime() === today.getTime();
-      }
-
-      if (filter === "tomorrow") {
-        const tomorrow = new Date(today);
-        tomorrow.setDate(today.getDate() + 1);
-        return meetupDate.getTime() === tomorrow.getTime();
-      }
-
-      if (filter === "week") {
-        const endOfWeek = new Date(today);
-        endOfWeek.setDate(today.getDate() + 7);
-        return meetupDate >= today && meetupDate <= endOfWeek;
-      }
-
-      if (filter === "nextWeek") {
-        const startNextWeek = new Date(today);
-        startNextWeek.setDate(today.getDate() + 2); // después de mañana
-        const endNextWeek = new Date(today);
-        endNextWeek.setDate(today.getDate() + 15);
-        return meetupDate >= startNextWeek && meetupDate <= endNextWeek;
-      }
-
-      if (filter === "all") {
-        // 👇 Mostrar solo Hoy y Mañana en el modo "general"
-        const tomorrow = new Date(today);
-        tomorrow.setDate(today.getDate() + 1);
-        return (
-          meetupDate.getTime() === today.getTime() ||
-          meetupDate.getTime() === tomorrow.getTime()
-        );
-      }
-
-      return false;
+  const formatDate = (d) => {
+    if (!d) return "";
+    const date = normalizeToDate(d);
+    if (!date) return "";
+    return date.toLocaleDateString(undefined, {
+      weekday: "short",
+      day: "2-digit",
+      month: "short",
     });
   };
 
-  const filteredMeetups = getFilteredMeetups();
+  useEffect(() => {
+    const now = new Date();
+    const max = new Date();
+    max.setDate(now.getDate() + 15);
+
+    const q = query(collectionGroup(db, "meetups"), orderBy("createdAt", "desc"));
+
+    const unsub = onSnapshot(
+      q,
+      (snap) => {
+        const rows = snap.docs.map((docSnap) => {
+          const data = docSnap.data();
+          return {
+            id: docSnap.id,
+            ...data,
+            ref: docSnap.ref,
+          };
+        });
+
+        // Mantén activas las de hoy hasta 23:59
+        const filtered = rows.filter((m) => {
+          const eventStart = normalizeToDate(m.date);
+          if (!eventStart) return false;
+          const eventEnd = endOfDay(eventStart);
+          return eventEnd >= now && startOfDay(eventStart) <= max;
+        });
+
+        // Opcional: ordena por fecha de evento ascendente (más próximas primero)
+        filtered.sort((a, b) => {
+          const da = normalizeToDate(a.date)?.getTime() ?? 0;
+          const dbb = normalizeToDate(b.date)?.getTime() ?? 0;
+          return da - dbb;
+        });
+
+        setMeetups(filtered);
+      },
+      (err) => {
+        console.error("❌ Error cargando quedadas globales:", err);
+      }
+    );
+
+    return () => unsub();
+  }, []);
+
+  const joinMeetup = async (ref) => {
+    if (!user) return alert("Debes iniciar sesión");
+    try {
+      await updateDoc(ref, { attendees: arrayUnion(user.uid) });
+    } catch (e) {
+      console.error("No se pudo unir:", e);
+    }
+  };
+
+  const leaveMeetup = async (ref) => {
+    if (!user) return alert("Debes iniciar sesión");
+    try {
+      await updateDoc(ref, { attendees: arrayRemove(user.uid) });
+    } catch (e) {
+      console.error("No se pudo salir:", e);
+    }
+  };
 
   return (
-    <div className="p-4 space-y-6">
-      <h1 className="text-3xl font-bold text-blue-700">🌍 Quedadas Globales</h1>
+    <div className="p-4 max-w-xl mx-auto space-y-4">
+      <h1 className="text-xl sm:text-2xl font-bold text-blue-700">
+        🌍 Quedadas globales
+      </h1>
 
-      {/* Filtros */}
-      <div className="flex flex-wrap gap-2">
-        <button
-          onClick={() => setFilter("all")}
-          className={`px-3 py-1 rounded-lg ${
-            filter === "all"
-              ? "bg-blue-600 text-white"
-              : "bg-gray-200 hover:bg-gray-300"
-          }`}
-        >
-          Hoy & Mañana
-        </button>
-        <button
-          onClick={() => setFilter("today")}
-          className={`px-3 py-1 rounded-lg ${
-            filter === "today"
-              ? "bg-blue-600 text-white"
-              : "bg-gray-200 hover:bg-gray-300"
-          }`}
-        >
-          Hoy
-        </button>
-        <button
-          onClick={() => setFilter("tomorrow")}
-          className={`px-3 py-1 rounded-lg ${
-            filter === "tomorrow"
-              ? "bg-blue-600 text-white"
-              : "bg-gray-200 hover:bg-gray-300"
-          }`}
-        >
-          Mañana
-        </button>
-        <button
-          onClick={() => setFilter("week")}
-          className={`px-3 py-1 rounded-lg ${
-            filter === "week"
-              ? "bg-blue-600 text-white"
-              : "bg-gray-200 hover:bg-gray-300"
-          }`}
-        >
-          Esta semana
-        </button>
-        <button
-          onClick={() => setFilter("nextWeek")}
-          className={`px-3 py-1 rounded-lg ${
-            filter === "nextWeek"
-              ? "bg-blue-600 text-white"
-              : "bg-gray-200 hover:bg-gray-300"
-          }`}
-        >
-          Próxima semana
-        </button>
-      </div>
+      {meetups.length === 0 ? (
+        <p className="text-gray-500 text-sm">
+          No hay quedadas activas (hoy o próximos 15 días).
+        </p>
+      ) : (
+        <ul className="space-y-3">
+          {meetups.map((m) => {
+            const isAttending = user && m.attendees?.includes?.(user.uid);
+            return (
+              <li
+                key={m.id}
+                className="bg-white rounded-lg shadow border p-3 sm:p-4"
+              >
+                <div className="flex items-center gap-2">
+                  {typeIcons[m.type] || null}
+                  <h3 className="font-semibold text-base sm:text-lg">
+                    {m.title}
+                  </h3>
+                </div>
 
-      {/* Lista de quedadas */}
-      <div className="space-y-3">
-        {filteredMeetups.length > 0 ? (
-          filteredMeetups.map((meetup) => (
-            <div
-              key={meetup.id}
-              className="p-4 border rounded-lg shadow hover:bg-gray-50"
-            >
-              <h3 className="text-lg font-bold">{meetup.title}</h3>
-              <p className="text-sm text-gray-600">{meetup.description}</p>
-              <p className="text-sm">📍 {meetup.city}</p>
-              <p className="text-sm">📅 {meetup.date}</p>
-              <p className="text-sm">👤 {meetup.userName}</p>
-              <p className="text-sm">🎯 Edad: {meetup.ageRange}</p>
-            </div>
-          ))
-        ) : (
-          <p className="text-gray-500">No hay quedadas en este rango.</p>
-        )}
-      </div>
+                <div className="mt-1 text-xs sm:text-sm text-gray-700 space-y-0.5">
+                  <p>📅 {formatDate(m.date)}</p>
+                  {m.city && <p>📍 {m.city}</p>}
+                  {m.userName && <p>👤 {m.userName}</p>}
+                  {m.ageRange && <p>🎯 Edad: {m.ageRange}</p>}
+                </div>
+
+                {m.description && (
+                  <p className="mt-2 text-sm text-gray-600">{m.description}</p>
+                )}
+
+                {user && (
+                  <button
+                    onClick={() =>
+                      isAttending ? leaveMeetup(m.ref) : joinMeetup(m.ref)
+                    }
+                    className={`mt-3 w-full py-2 rounded-lg text-white text-sm font-medium ${
+                      isAttending
+                        ? "bg-red-500 hover:bg-red-600"
+                        : "bg-green-600 hover:bg-green-700"
+                    }`}
+                  >
+                    {isAttending ? "❌ Salir de la quedada" : "✅ Unirme a la quedada"}
+                  </button>
+                )}
+
+                <p className="mt-2 text-[12px] text-gray-500">
+                  Asistentes: {m.attendees?.length || 0}
+                </p>
+              </li>
+            );
+          })}
+        </ul>
+      )}
 
       <BackButton />
     </div>
   );
 }
-
 
 

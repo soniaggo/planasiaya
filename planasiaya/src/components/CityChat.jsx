@@ -1,8 +1,9 @@
 
-
 // src/components/CityChat.jsx
-import { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useUser } from "../context/UserContext";
+import { db } from "../firebaseConfig";
+import { normalizeCity } from "../utils/normalizeCity";
 import {
   collection,
   addDoc,
@@ -11,79 +12,83 @@ import {
   onSnapshot,
   serverTimestamp,
 } from "firebase/firestore";
-import { db } from "../firebaseConfig";
-import { useUser } from "../context/UserContext";
+import BackButton from "./BackButton";
 
-export default function CityChat({ city: cityProp }) {
-  const { user } = useUser();
-  const { chatId } = useParams(); // si viene de la URL
-  const city = cityProp || chatId; // prioridad a la prop, si no usar la URL
-
+export default function CityChat({ chatId }) {
+  const { user, profile } = useUser();
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
 
-  useEffect(() => {
-    if (!city) return; // 👈 evita reventar si aún no hay city
+  // ✅ Bloqueo si la ciudad no está activa
+  if (
+    !profile?.activeCities?.some(
+      (c) => normalizeCity(c) === normalizeCity(chatId)
+    )
+  ) {
+    return <p>⚠️ Activa esta ciudad en tu perfil para chatear.</p>;
+  }
 
+  useEffect(() => {
+    if (!chatId) return;
     const q = query(
-      collection(db, "cityChats", city, "messages"),
+      collection(db, "cityChats", chatId, "messages"),
       orderBy("createdAt", "asc")
     );
-
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const data = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-      setMessages(data);
+    const unsub = onSnapshot(q, (snap) => {
+      setMessages(snap.docs.map((doc) => ({ id: doc.id, ...doc.data() })));
     });
-
-    return () => unsubscribe();
-  }, [city]);
+    return () => unsub();
+  }, [chatId]);
 
   const sendMessage = async (e) => {
     e.preventDefault();
-    if (!user) return alert("Debes iniciar sesión para chatear");
+    if (!user) return alert("Debes iniciar sesión");
     if (!newMessage.trim()) return;
 
-    if (!city) return alert("Error: ciudad no encontrada");
-
-    await addDoc(collection(db, "cityChats", city, "messages"), {
+    await addDoc(collection(db, "cityChats", chatId, "messages"), {
       text: newMessage,
       userId: user.uid,
-      userName: user.displayName || "Viajero",
+      userName: profile?.displayName || "Viajero",
       createdAt: serverTimestamp(),
     });
-
     setNewMessage("");
   };
 
   return (
-    <div className="p-4 border rounded-xl shadow bg-white space-y-4">
-      <h2 className="text-xl font-semibold text-blue-700">
-        💬 Chat en {city || "cargando..."}
-      </h2>
+    <div className="flex flex-col h-[90vh] p-4">
+      <BackButton />
+      <h2 className="text-xl font-bold mb-4">💬 Chat en {chatId}</h2>
 
-      <div className="max-h-64 overflow-y-auto space-y-2 border p-2 rounded bg-gray-50">
-        {messages.map((msg) => (
-          <div key={msg.id} className="p-2 bg-white rounded shadow">
-            <p className="text-sm font-bold">{msg.userName}</p>
-            <p className="text-gray-700">{msg.text}</p>
+      <div className="flex-1 overflow-y-auto space-y-2 mb-4">
+        {messages.map((m) => (
+          <div
+            key={m.id}
+            className={`p-2 rounded-lg ${
+              m.userId === user?.uid
+                ? "bg-blue-500 text-white self-end"
+                : "bg-gray-200"
+            }`}
+          >
+            <p className="text-sm font-bold">{m.userName}</p>
+            <p>{m.text}</p>
           </div>
         ))}
-        {messages.length === 0 && (
-          <p className="text-gray-500 text-sm">Aún no hay mensajes.</p>
-        )}
       </div>
 
-      <form onSubmit={sendMessage} className="flex gap-2">
+      <form
+        onSubmit={sendMessage}
+        className="flex gap-2 sticky bottom-0 bg-white p-2"
+      >
         <input
           type="text"
           value={newMessage}
           onChange={(e) => setNewMessage(e.target.value)}
           placeholder="Escribe un mensaje..."
-          className="flex-1 border px-3 py-2 rounded"
+          className="flex-1 border rounded px-3 py-2"
         />
         <button
           type="submit"
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
+          className="px-4 py-2 bg-blue-600 text-white rounded"
         >
           Enviar
         </button>
@@ -91,8 +96,5 @@ export default function CityChat({ city: cityProp }) {
     </div>
   );
 }
-
-
-
 
 

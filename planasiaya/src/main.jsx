@@ -1,15 +1,16 @@
 
 import React from "react";
 import ReactDOM from "react-dom/client";
-import { createBrowserRouter, RouterProvider, useParams } from "react-router-dom";
+import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import "./index.css";
 import { HelmetProvider } from "react-helmet-async";
+import ForgotPassword from "./pages/ForgotPassword";
 
-// Contexto de usuario
+// Contextos
 import { UserProvider } from "./context/UserContext";
 import { ThemeProvider } from "./context/ThemeContext";
 
-// Páginas
+// Páginas y rutas
 import App from "./App";
 import Home from "./pages/Home";
 import Guides from "./pages/Guides";
@@ -22,7 +23,7 @@ import CityChatList from "./components/CityChatList";
 import CityChat from "./components/CityChat";
 import CityMeetups from "./components/CityMeetups";
 
-// Guías individuales
+// Guías
 import Bangkok from "./pages/guides/Bangkok";
 import ChiangMai from "./pages/guides/ChiangMai";
 import Krabi from "./pages/guides/Krabi";
@@ -35,10 +36,12 @@ import Siargao from "./pages/guides/Siargao";
 import Bohol from "./pages/guides/Bohol";
 import Camiguin from "./pages/guides/Camiguin";
 
-// Wrappers dinámicos para capturar params
+// Wrappers dinámicos
+import { useParams } from "react-router-dom";
+
 function CityMeetupsWrapper() {
   const { city } = useParams();
-  return <CityMeetups city={city} />; // 👈 ya no pasamos country
+  return <CityMeetups city={city} />;
 }
 
 function CityChatWrapper() {
@@ -57,16 +60,11 @@ const router = createBrowserRouter([
       { path: "/allmeetups", element: <AllMeetups /> },
       { path: "/profile", element: <Profile /> },
       { path: "/register", element: <Register /> },
+      { path: "/forgot-password", element: <ForgotPassword /> },
       { path: "/login", element: <Login /> },
-
-      // Chat general y por ciudad
       { path: "/citychat", element: <CityChatList /> },
       { path: "/citychat/:chatId", element: <CityChatWrapper /> },
-
-      // Quedadas por ciudad
       { path: "/citymeetups/:city", element: <CityMeetupsWrapper /> },
-
-      // Rutas de guías
       { path: "/guides/bangkok", element: <Bangkok /> },
       { path: "/guides/chiang-mai", element: <ChiangMai /> },
       { path: "/guides/krabi", element: <Krabi /> },
@@ -85,11 +83,11 @@ const router = createBrowserRouter([
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <HelmetProvider>
-      <UserProvider>
-        <ThemeProvider>
+      <ThemeProvider>
+        <UserProvider>
           <RouterProvider router={router} />
-        </ThemeProvider>
-      </UserProvider>
+        </UserProvider>
+      </ThemeProvider>
     </HelmetProvider>
   </React.StrictMode>
 );

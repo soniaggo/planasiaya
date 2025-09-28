@@ -1,6 +1,9 @@
 
+
+
 // src/components/CityMeetups.jsx
 import { useState, useEffect } from "react";
+import { normalizeCity } from "../utils/normalizeCity";
 import {
   collection,
   addDoc,
@@ -8,20 +11,20 @@ import {
   onSnapshot,
   orderBy,
   serverTimestamp,
+  doc,
+  updateDoc,
+  arrayUnion,
+  arrayRemove,
 } from "firebase/firestore";
 import { db } from "../firebaseConfig";
 import { useUser } from "../context/UserContext";
-import { useParams, useNavigate } from "react-router-dom";
-
-// Íconos
 import { FaHiking, FaGlassCheers, FaUmbrellaBeach, FaLandmark } from "react-icons/fa";
 import { GiForestCamp } from "react-icons/gi";
+import BackButton from "./BackButton";
+import { Timestamp } from "firebase/firestore";
 
-export default function CityMeetups() {
-  const { user } = useUser();
-  const { city } = useParams(); // 👈 obtenemos la ciudad desde la URL
-  const navigate = useNavigate();
-
+export default function CityMeetups({ city }) {
+  const { user, profile } = useUser();
   const [meetups, setMeetups] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
@@ -32,25 +35,39 @@ export default function CityMeetups() {
     ageRange: "indiferente",
   });
 
-  useEffect(() => {
-    if (!city) return;
+  // ✅ Bloqueo si la ciudad no está activa
+  if (
+    !profile?.activeCities?.some(
+      (c) => normalizeCity(c) === normalizeCity(city)
+    )
+  ) {
+    return <p>⚠️ Activa esta ciudad en tu perfil para ver o crear quedadas.</p>;
+  }
 
+  // 🔹 Formatear fecha
+  function formatDate(date) {
+    if (!date) return "";
+    if (date instanceof Timestamp) return date.toDate().toLocaleDateString();
+    if (typeof date === "string") return date;
+    return "";
+  }
+
+  // 🔹 Escuchar quedadas
+  useEffect(() => {
     const q = query(
-      collection(db, "cityMeetups", city, "meetups"), // 👈 subcolección por ciudad
+      collection(db, "cityMeetups", city, "meetups"),
       orderBy("createdAt", "desc")
     );
-
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const data = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
       setMeetups(data);
     });
-
     return () => unsubscribe();
   }, [city]);
 
-  const handleChange = (e) => {
+  // 🔹 Formulario
+  const handleChange = (e) =>
     setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -60,7 +77,8 @@ export default function CityMeetups() {
       ...formData,
       city,
       userId: user.uid,
-      userName: user.displayName || "Viajero",
+      userName: profile?.displayName || "Viajero",
+      attendees: [user.uid],
       createdAt: serverTimestamp(),
     });
 
@@ -74,6 +92,19 @@ export default function CityMeetups() {
     setShowForm(false);
   };
 
+  // 🔹 Unirse / salir
+  const joinMeetup = async (meetupId) => {
+    if (!user) return alert("Debes iniciar sesión");
+    const meetupRef = doc(db, "cityMeetups", city, "meetups", meetupId);
+    await updateDoc(meetupRef, { attendees: arrayUnion(user.uid) });
+  };
+
+  const leaveMeetup = async (meetupId) => {
+    if (!user) return alert("Debes iniciar sesión");
+    const meetupRef = doc(db, "cityMeetups", city, "meetups", meetupId);
+    await updateDoc(meetupRef, { attendees: arrayRemove(user.uid) });
+  };
+
   const typeIcons = {
     naturaleza: <GiForestCamp className="w-6 h-6 text-green-600" />,
     aventura: <FaHiking className="w-6 h-6 text-orange-600" />,
@@ -83,23 +114,15 @@ export default function CityMeetups() {
   };
 
   return (
-    <div className="p-4 border rounded-xl shadow bg-white space-y-4">
+    <div className="p-4 space-y-4 max-w-2xl mx-auto">
       <h2 className="text-xl font-semibold text-blue-700">
         📌 Quedadas en {city}
       </h2>
 
-      {/* Botón volver atrás */}
-      <button
-        onClick={() => navigate(-1)}
-        className="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-300 transition"
-      >
-        ⬅️ Volver
-      </button>
-
       {/* Botón para abrir formulario */}
       <button
         onClick={() => setShowForm(!showForm)}
-        className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
+        className="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
       >
         {showForm ? "Cancelar" : "➕ Crear quedada"}
       </button>
@@ -135,11 +158,10 @@ export default function CityMeetups() {
             required
             className="w-full border px-3 py-2 rounded"
           />
-
-          {/* Tipo de quedada */}
+          {/* Tipo */}
           <div>
             <label className="font-semibold">Tipo de quedada:</label>
-            <div className="flex space-x-4 mt-2">
+            <div className="flex flex-wrap gap-4 mt-2">
               {Object.keys(typeIcons).map((type) => (
                 <label key={type} className="flex flex-col items-center">
                   <input
@@ -156,8 +178,7 @@ export default function CityMeetups() {
               ))}
             </div>
           </div>
-
-          {/* Rango de edad */}
+          {/* Rango edad */}
           <div>
             <label className="font-semibold">Rango de edad:</label>
             <select
@@ -173,10 +194,9 @@ export default function CityMeetups() {
               <option value="50+">50+</option>
             </select>
           </div>
-
           <button
             type="submit"
-            className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition"
+            className="w-full bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition"
           >
             Crear
           </button>
@@ -186,28 +206,61 @@ export default function CityMeetups() {
       {/* Lista de quedadas */}
       <div className="space-y-3">
         {meetups.length > 0 ? (
-          meetups.map((meetup) => (
-            <div
-              key={meetup.id}
-              className="p-4 border rounded-lg shadow hover:bg-gray-50"
-            >
-              <div className="flex items-center space-x-2">
-                {typeIcons[meetup.type]}
-                <h3 className="text-lg font-bold">{meetup.title}</h3>
+          meetups.map((meetup) => {
+            const isAttending = user && meetup.attendees?.includes(user.uid);
+            return (
+              <div
+                key={meetup.id}
+                className="p-4 border rounded-lg shadow bg-white"
+              >
+                <div className="flex items-center space-x-2">
+                  {typeIcons[meetup.type]}
+                  <h3 className="text-lg font-bold">{meetup.title}</h3>
+                </div>
+                <p className="text-sm text-gray-600">{meetup.description}</p>
+                <p className="text-sm">📅 {formatDate(meetup.date)}</p>
+                <p className="text-sm">👤 {meetup.userName}</p>
+                <p className="text-sm">🎯 Edad: {meetup.ageRange}</p>
+
+                {user && (
+                  <button
+                    onClick={() =>
+                      isAttending
+                        ? leaveMeetup(meetup.id)
+                        : joinMeetup(meetup.id)
+                    }
+                    className={`mt-2 w-full px-3 py-2 rounded-lg text-white ${
+                      isAttending
+                        ? "bg-red-500 hover:bg-red-600"
+                        : "bg-green-500 hover:bg-green-600"
+                    }`}
+                  >
+                    {isAttending
+                      ? "❌ Salir de la quedada"
+                      : "✅ Unirme a la quedada"}
+                  </button>
+                )}
+
+                <div className="mt-2">
+                  <p className="text-xs text-gray-500">
+                    Asistentes: {meetup.attendees?.length || 0}
+                  </p>
+                </div>
               </div>
-              <p className="text-sm text-gray-600">{meetup.description}</p>
-              <p className="text-sm">📅 {meetup.date}</p>
-              <p className="text-sm">👤 {meetup.userName}</p>
-              <p className="text-sm">🎯 Edad: {meetup.ageRange}</p>
-            </div>
-          ))
+            );
+          })
         ) : (
           <p className="text-gray-500">No hay quedadas todavía en {city}.</p>
         )}
       </div>
+
+      <BackButton />
     </div>
   );
 }
+
+
+
 
 
 

@@ -3,6 +3,7 @@
 
 import { createContext, useContext, useEffect, useState } from "react";
 import { auth, db } from "../firebaseConfig";
+import { normalizeCity } from "../utils/normalizeCity";
 import {
   onAuthStateChanged,
   signOut,
@@ -61,33 +62,36 @@ export function UserProvider({ children }) {
     return () => unsub();
   }, []);
 
-// Añadir favorito (también activa ciudad)
+
+
 const addFavorite = async (cityName) => {
   if (!user) return;
   try {
+    const slug = normalizeCity(cityName);
     const userRef = doc(db, "users", user.uid);
     await updateDoc(userRef, {
-      favorites: arrayUnion(cityName),
-      activeCities: arrayUnion(cityName), // ✅ también la activa
+      favorites: arrayUnion(slug),
+      activeCities: arrayUnion(slug),
     });
   } catch (err) {
     console.error("❌ Error añadiendo favorito:", err);
   }
 };
 
-// Quitar favorito (también desactiva ciudad)
 const removeFavorite = async (cityName) => {
   if (!user) return;
   try {
+    const slug = normalizeCity(cityName);
     const userRef = doc(db, "users", user.uid);
     await updateDoc(userRef, {
-      favorites: arrayRemove(cityName),
-      activeCities: arrayRemove(cityName), // ✅ también la desactiva
+      favorites: arrayRemove(slug),
+      activeCities: arrayRemove(slug),
     });
   } catch (err) {
     console.error("❌ Error quitando favorito:", err);
   }
 };
+
 
 
   const logout = async () => {

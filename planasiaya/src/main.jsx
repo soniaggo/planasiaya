@@ -25,6 +25,10 @@ import CityMeetups from "./components/CityMeetups";
 
 // Guías
 import Bangkok from "./pages/guides/Bangkok";
+import Hanoi from "./pages/guides/Hanoi";
+import Hue from "./pages/guides/Hue";
+import Hoian from "./pages/guides/Hoi-an";
+import HalongBay from "./pages/guides/HalongBay";
 import ChiangMai from "./pages/guides/ChiangMai";
 import Krabi from "./pages/guides/Krabi";
 import KohTao from "./pages/guides/KohTao";
@@ -76,6 +80,10 @@ const router = createBrowserRouter([
       { path: "/guides/siargao", element: <Siargao /> },
       { path: "/guides/bohol", element: <Bohol /> },
       { path: "/guides/camiguin", element: <Camiguin /> },
+      { path: "/guides/hanoi", element: <Hanoi /> },
+      { path: "/guides/hue", element: <Hue /> },
+      { path: "/guides/hoi-an", element: <Hoian /> },
+      { path: "/guides/halong-bay", element: <HalongBay /> },
     ],
   },
 ]);

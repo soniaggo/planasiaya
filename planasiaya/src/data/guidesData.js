@@ -57,6 +57,36 @@ const guidesData = [
     ],
   },
   {
+    country: "Vietnam",
+    destinations: [
+      {
+        name: "Hanoi",
+        path: "/guides/hanoi",
+        image: "https://images.unsplash.com/photo-1513151233558-d860c5398176?w=600",
+      },
+      {
+        name: "HOI AN",
+        path: "/guides/hoi-an",
+        image: "https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=600",
+      },
+      {
+        name: "Halong Bay",
+        path: "/guides/halong-bay",
+        image: "https://images.unsplash.com/photo-1549887534-4f1d3d76e7ea?w=600",
+      },
+      {
+        name: "Hue",
+        path: "/guides/hue",
+        image: "https://images.unsplash.com/photo-1549887534-4f1d3d76e7ea?w=600",
+      },
+      {
+        name: "Ho Chi Minh ",
+        path: "/guides/ho-chi-minh",
+        image: "https://images.unsplash.com/photo-1549887534-4f1d3d76e7ea?w=600",
+      },
+    ],
+  },
+  {
     country: "Indonesia",
     destinations: [
       {

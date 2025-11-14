@@ -1,27 +1,9 @@
-
-
-
-import { useState, useEffect } from "react";
-import { normalizeCity, displayCityName } from "../utils/normalizeCity";
-import {
-  collection,
-  addDoc,
-  query,
-  onSnapshot,
-  orderBy,
-  serverTimestamp,
-  doc,
-  updateDoc,
-  arrayUnion,
-  arrayRemove,
-} from "firebase/firestore";
-import { db } from "../firebaseConfig";
-import { useUser } from "../context/UserContext";
-import BackButton from "./BackButton";
+import { useState } from "react";
+import { displayCityName } from "../utils/normalizeCity";
+import BackButton from "../components/BackButton";
+import { useCityMeetups } from "../hooks/useCityMeetups";
 
 export default function CityMeetups({ city }) {
-  const { user, profile } = useUser();
-  const [meetups, setMeetups] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
     title: "",
@@ -30,58 +12,56 @@ export default function CityMeetups({ city }) {
     type: "naturaleza",
   });
 
-  // 🔒 Bloqueo si la ciudad no está activa
-  if (
-    !profile?.activeCities?.some(
-      (c) => normalizeCity(c) === normalizeCity(city)
-    )
-  ) {
-    return (
-      <p className="p-4">
-        ⚠️ Activa {displayCityName(city)} en tu perfil para ver o crear quedadas.
-      </p>
-    );
-  }
-
-  useEffect(() => {
-    const q = query(
-      collection(db, "cityMeetups", city, "meetups"),
-      orderBy("createdAt", "desc")
-    );
-    const unsub = onSnapshot(q, (snap) => {
-      setMeetups(snap.docs.map((doc) => ({ id: doc.id, ...doc.data() })));
-    });
-    return () => unsub();
-  }, [city]);
+  const {
+    user,
+    isCityActive,
+    meetups,
+    loading,
+    error,
+    createMeetup,
+    joinMeetup,
+    leaveMeetup,
+  } = useCityMeetups(city);
 
   const handleChange = (e) =>
     setFormData({ ...formData, [e.target.name]: e.target.value });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!user) return alert("Debes iniciar sesión");
-
-    await addDoc(collection(db, "cityMeetups", city, "meetups"), {
-      ...formData,
-      userId: user.uid,
-      userName: profile?.displayName || "Viajero",
-      attendees: [user.uid],
-      createdAt: serverTimestamp(),
-    });
-
-    setFormData({ title: "", description: "", date: "", type: "naturaleza" });
-    setShowForm(false);
+    try {
+      await createMeetup(formData);
+      setFormData({ title: "", description: "", date: "", type: "naturaleza" });
+      setShowForm(false);
+    } catch (err) {
+      alert(err.message || "Error al crear la quedada");
+    }
   };
 
-  const joinMeetup = async (id) => {
-    const ref = doc(db, "cityMeetups", city, "meetups", id);
-    await updateDoc(ref, { attendees: arrayUnion(user.uid) });
-  };
+  // Returns condicionales DESPUÉS de hooks
+  if (!city) {
+    return (
+      <p className="p-4">
+        ⚠️ Ciudad no válida. Vuelve atrás y selecciona una ciudad.
+      </p>
+    );
+  }
 
-  const leaveMeetup = async (id) => {
-    const ref = doc(db, "cityMeetups", city, "meetups", id);
-    await updateDoc(ref, { attendees: arrayRemove(user.uid) });
-  };
+  if (!isCityActive) {
+    return (
+      <p className="p-4">
+        ⚠️ Activa {displayCityName(city)} en tu perfil para ver o crear
+        quedadas.
+      </p>
+    );
+  }
+
+  if (loading) {
+    return <p className="p-4">Cargando quedadas…</p>;
+  }
+
+  if (error) {
+    return <p className="p-4 text-red-500">{error}</p>;
+  }
 
   return (
     <div className="p-4 space-y-4 max-w-2xl mx-auto">
@@ -135,16 +115,40 @@ export default function CityMeetups({ city }) {
       <div className="space-y-3">
         {meetups.map((m) => {
           const isJoined = m.attendees?.includes(user?.uid);
+
+          // Normalizamos fecha (string o Timestamp)
+          let displayDate = "";
+          if (m.date) {
+            if (m.date.toDate) {
+              displayDate = m.date.toDate().toLocaleDateString("es-ES", {
+                day: "2-digit",
+                month: "2-digit",
+                year: "numeric",
+              });
+            } else {
+              displayDate = new Date(m.date).toLocaleDateString("es-ES", {
+                day: "2-digit",
+                month: "2-digit",
+                year: "numeric",
+              });
+            }
+          }
+
           return (
-            <div key={m.id} className="p-4 border rounded-lg bg-white shadow">
+            <div
+              key={m.id}
+              className="p-4 border rounded-lg bg-white shadow"
+            >
               <h3 className="text-lg font-bold">{m.title}</h3>
               <p>{m.description}</p>
-              <p>📅 {m.date}</p>
+              {displayDate && <p>📅 {displayDate}</p>}
               <p>👤 {m.userName}</p>
 
               {user && (
                 <button
-                  onClick={() => (isJoined ? leaveMeetup(m.id) : joinMeetup(m.id))}
+                  onClick={() =>
+                    isJoined ? leaveMeetup(m.id) : joinMeetup(m.id)
+                  }
                   className={`mt-2 w-full px-3 py-2 rounded-lg text-white ${
                     isJoined ? "bg-red-500" : "bg-green-500"
                   }`}
@@ -161,7 +165,4 @@ export default function CityMeetups({ city }) {
     </div>
   );
 }
-
-
-
 

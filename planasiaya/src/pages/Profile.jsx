@@ -1,37 +1,36 @@
-
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { Trash2, Edit3 } from "lucide-react";
+
 import { useUser } from "../context/UserContext";
 import guidesData from "../data/guidesData";
-import { normalizeCity, displayCityName } from "../utils/normalizeCity"; // ✅ nombres bonitos
-import { Trash2, Edit3 } from "lucide-react";
+import { normalizeCity, displayCityName } from "../utils/normalizeCity";
+
 import PhotoUploader from "../components/PhotoUploader";
 import Loader from "../components/Loader";
 import PageFade from "../components/PageFade";
-import { useEffect, useState } from "react";
-import {
-  collection,
-  query,
-  where,
-  onSnapshot,
-  doc,
-  updateDoc,
-  arrayRemove,
-} from "firebase/firestore";
-import { db, auth } from "../firebaseConfig";
-import { signOut } from "firebase/auth";
+
+import { collection, query, where, onSnapshot } from "firebase/firestore";
+import { db } from "../firebaseConfig";
 
 export default function Profile() {
-  const { user, profile, removeFavorite } = useUser();
+  const { user, profile, removeFavorite, updateProfile, logout } = useUser();
 
   const [photos, setPhotos] = useState([]);
   const [loadingPhotos, setLoadingPhotos] = useState(true);
   const [bio, setBio] = useState(profile?.bio || "");
   const [savingBio, setSavingBio] = useState(false);
 
+  // 🔁 Sincronizar bio cuando llegue/cambie el perfil
+  useEffect(() => {
+    setBio(profile?.bio || "");
+  }, [profile?.bio]);
+
   // 🔎 Escuchar fotos en tiempo real
   useEffect(() => {
     if (!user) return;
     setLoadingPhotos(true);
+
     const q = query(collection(db, "photos"), where("userId", "==", user.uid));
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const userPhotos = snapshot.docs.map((doc) => ({
@@ -41,16 +40,16 @@ export default function Profile() {
       setPhotos(userPhotos);
       setLoadingPhotos(false);
     });
+
     return () => unsubscribe();
   }, [user]);
 
-  // Guardar bio en Firestore
+  // Guardar bio usando updateProfile del contexto
   const saveBio = async () => {
     if (!user) return;
     try {
       setSavingBio(true);
-      const userRef = doc(db, "users", user.uid);
-      await updateDoc(userRef, { bio });
+      await updateProfile({ bio });
     } catch (err) {
       console.error("❌ Error guardando bio:", err);
     } finally {
@@ -58,10 +57,10 @@ export default function Profile() {
     }
   };
 
-  // Logout
+  // Logout usando el contexto
   const handleLogout = async () => {
     try {
-      await signOut(auth);
+      await logout();
       window.location.href = "/login";
     } catch (err) {
       console.error("❌ Error cerrando sesión:", err);
@@ -85,32 +84,36 @@ export default function Profile() {
     );
   }
 
-  // 🔎 Favoritos → convertir slugs en destinos bonitos
+  // 🔎 Favoritos → convertir slugs en destinos bonitos, manteniendo el slug original
   const favoriteDetails = profile?.favorites
     ?.map((slug) => {
       for (const country of guidesData) {
         const match = country.destinations.find(
           (d) => normalizeCity(d.name) === slug
         );
-        if (match) return match;
+        if (match) {
+          // devolvemos también el slug original
+          return { ...match, slug };
+        }
       }
+      // fallback si no hay match en guidesData
       return { name: displayCityName(slug), slug };
     })
     .filter(Boolean);
 
-  // 🔎 Ciudades activas → también nombres bonitos
+  // 🔎 Ciudades activas → nombres bonitos + slug normalizado
   const activeCities = profile?.activeCities?.map((c) => ({
     slug: normalizeCity(c),
     name: displayCityName(c),
   }));
 
-  // 🔄 Eliminar ciudad activa
+  // 🔄 Eliminar ciudad activa usando updateProfile
   const removeActiveCity = async (citySlug) => {
     try {
-      const userRef = doc(db, "users", user.uid);
-      await updateDoc(userRef, {
-        activeCities: arrayRemove(citySlug),
-      });
+      const filtered = (profile?.activeCities || []).filter(
+        (c) => normalizeCity(c) !== citySlug
+      );
+      await updateProfile({ activeCities: filtered });
     } catch (err) {
       console.error("❌ Error eliminando ciudad activa:", err);
     }
@@ -134,12 +137,20 @@ export default function Profile() {
               </div>
             )}
           </div>
+
           <div className="flex-1 text-center sm:text-left">
-            <h1 className="text-2xl font-extrabold text-brand mb-2">
+            <h1 className="text-2xl font-extrabold text-brand mb-1">
               {profile?.displayName || "Usuario anónimo"}
             </h1>
             <p className="text-gray-600 dark:text-gray-300 mb-2">
               {profile?.email}
+            </p>
+
+            {/* 🔹 Bio tipo Instagram debajo del nombre */}
+            <p className="mt-2 text-sm text-gray-800 dark:text-gray-200 whitespace-pre-line">
+              {bio && bio.trim().length > 0
+                ? bio
+                : "Añade una bio para que otros viajeros te conozcan."}
             </p>
           </div>
 
@@ -188,9 +199,7 @@ export default function Profile() {
                   className="group bg-white dark:bg-darkCard rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 relative"
                 >
                   <button
-                    onClick={() =>
-                      removeFavorite(normalizeCity(fav.name) || fav.slug)
-                    }
+                    onClick={() => removeFavorite(fav.slug)}
                     className="absolute top-2 right-2 z-10 bg-red-600 p-2 rounded-full shadow hover:bg-red-700 transition"
                     title="Eliminar favorito"
                   >
@@ -309,3 +318,5 @@ export default function Profile() {
     </PageFade>
   );
 }
+
+

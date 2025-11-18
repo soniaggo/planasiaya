@@ -102,22 +102,54 @@
 
 
 // src/main.jsx
+// import React from "react";
+// import ReactDOM from "react-dom/client";
+// import "./index.css";
+// import { HelmetProvider } from "react-helmet-async";
+// import { RouterProvider } from "react-router-dom";
+
+// import { UserProvider } from "./context/UserContext";
+// import { ThemeProvider } from "./context/ThemeContext";
+// import { router } from "./router";
+
+// ReactDOM.createRoot(document.getElementById("root")).render(
+//   <React.StrictMode>
+//     <HelmetProvider>
+//       <ThemeProvider>
+//         <UserProvider>
+//           <RouterProvider router={router} />
+//         </UserProvider>
+//       </ThemeProvider>
+//     </HelmetProvider>
+//   </React.StrictMode>
+// );
+
+
+// src/main.jsx
 import React from "react";
 import ReactDOM from "react-dom/client";
+import { RouterProvider } from "react-router-dom";
 import "./index.css";
 import { HelmetProvider } from "react-helmet-async";
-import { RouterProvider } from "react-router-dom";
 
+// Contextos
 import { UserProvider } from "./context/UserContext";
 import { ThemeProvider } from "./context/ThemeContext";
+
+// Router centralizado
 import { router } from "./router";
+
+// Loader para Suspense
+import Loader from "./components/Loader";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <HelmetProvider>
       <ThemeProvider>
         <UserProvider>
-          <RouterProvider router={router} />
+          <React.Suspense fallback={<Loader text="Cargando pantalla..." />}>
+            <RouterProvider router={router} />
+          </React.Suspense>
         </UserProvider>
       </ThemeProvider>
     </HelmetProvider>

@@ -1,7 +1,9 @@
+// src/pages/CityMeetups.jsx
 import { useState } from "react";
 import { displayCityName } from "../utils/normalizeCity";
 import BackButton from "../components/BackButton";
 import { useCityMeetups } from "../hooks/useCityMeetups";
+import { sanitizeText, isNonEmpty } from "../utils/validation";
 
 export default function CityMeetups({ city }) {
   const [showForm, setShowForm] = useState(false);
@@ -28,9 +30,28 @@ export default function CityMeetups({ city }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // 🔐 Limpiar y validar datos antes de crear la quedada
+    const title = sanitizeText(formData.title, { maxLength: 120 });
+    const description = sanitizeText(formData.description, {
+      maxLength: 1000,
+    });
+    const date = formData.date?.trim() || "";
+    const type = formData.type || "naturaleza";
+
+    if (!isNonEmpty(title) || !isNonEmpty(description) || !date) {
+      alert("Rellena título, descripción y fecha.");
+      return;
+    }
+
     try {
-      await createMeetup(formData);
-      setFormData({ title: "", description: "", date: "", type: "naturaleza" });
+      await createMeetup({ title, description, date, type });
+      setFormData({
+        title: "",
+        description: "",
+        date: "",
+        type: "naturaleza",
+      });
       setShowForm(false);
     } catch (err) {
       alert(err.message || "Error al crear la quedada");
@@ -165,4 +186,5 @@ export default function CityMeetups({ city }) {
     </div>
   );
 }
+
 

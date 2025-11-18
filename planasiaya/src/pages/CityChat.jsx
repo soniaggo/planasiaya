@@ -1,24 +1,25 @@
+// src/pages/CityChat.jsx
 import { useState } from "react";
 import BackButton from "../components/BackButton";
 import { displayCityName } from "../utils/normalizeCity";
 import { useCityChat } from "../hooks/useCityChat";
+import { sanitizeText, isNonEmpty } from "../utils/validation";
 
 export default function CityChat({ chatId }) {
   const [newMessage, setNewMessage] = useState("");
 
-  const {
-    user,
-    messages,
-    loading,
-    error,
-    isCityActive,
-    sendMessage,
-  } = useCityChat(chatId);
+  const { user, messages, loading, error, isCityActive, sendMessage } =
+    useCityChat(chatId);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // 🔐 limpiar y validar mensaje antes de enviarlo
+    const clean = sanitizeText(newMessage, { maxLength: 500 });
+    if (!isNonEmpty(clean)) return; // no mandamos vacíos
+
     try {
-      await sendMessage(newMessage);
+      await sendMessage(clean); // enviamos el texto ya limpio
       setNewMessage("");
     } catch (err) {
       alert(err.message || "Error al enviar el mensaje");
@@ -92,3 +93,4 @@ export default function CityChat({ chatId }) {
     </div>
   );
 }
+

@@ -1,3 +1,4 @@
+// src/pages/Profile.jsx
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Trash2, Edit3 } from "lucide-react";
@@ -5,6 +6,7 @@ import { Trash2, Edit3 } from "lucide-react";
 import { useUser } from "../context/UserContext";
 import guidesData from "../data/guidesData";
 import { normalizeCity, displayCityName } from "../utils/normalizeCity";
+import { sanitizeText } from "../utils/validation";
 
 import PhotoUploader from "../components/PhotoUploader";
 import Loader from "../components/Loader";
@@ -44,12 +46,23 @@ export default function Profile() {
     return () => unsubscribe();
   }, [user]);
 
-  // Guardar bio usando updateProfile del contexto
+  // Guardar bio usando updateProfile del contexto (con sanitización)
   const saveBio = async () => {
     if (!user) return;
     try {
       setSavingBio(true);
-      await updateProfile({ bio });
+
+      // 🔐 limpiar y acotar la bio antes de guardar
+      const cleanBio = sanitizeText(bio, { maxLength: 300 });
+
+      // si no cambia nada, no hacemos petición
+      if (cleanBio === (profile?.bio || "")) {
+        setBio(cleanBio);
+        return;
+      }
+
+      await updateProfile({ bio: cleanBio });
+      setBio(cleanBio); // sincronizar estado local con lo guardado
     } catch (err) {
       console.error("❌ Error guardando bio:", err);
     } finally {
@@ -288,7 +301,7 @@ export default function Profile() {
               {photos.map((photo) => (
                 <div
                   key={photo.id}
-                  className="relative group bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden"
+                  className="relative group bg-white dark:bg-gray-800 rounded-lg_shadow overflow-hidden"
                 >
                   <div className="relative w-full pt-[100%]">
                     <img
@@ -318,5 +331,6 @@ export default function Profile() {
     </PageFade>
   );
 }
+
 
 
